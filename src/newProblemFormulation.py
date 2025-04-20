@@ -69,8 +69,19 @@ class cropProblem:
             if self.is_valid_action(state, reqs):
                 valid_crops.append(crop_name)
         return valid_crops
-
-    def is_valid_action(self, state, reqs):
+    
+    def expand_node(self, node):
+        state = node.state
+        valid_actions = self.get_valid_actions(state)
+        child_nodes = []
+        for action in valid_actions:
+            child_state = self.apply_action(state, action)
+            child_cost = node.cost + self.calculate_cost(node.state, action)
+            child_node = CropNode(child_state, parent= node, action = action, cost = child_cost)
+            child_nodes.append(child_node)
+        return child_nodes
+    
+    def is_valid_action(self, state , reqs):
         # Check at least one soil parameter is in range
         # if there is no parameter within the range return false
         if not any(
