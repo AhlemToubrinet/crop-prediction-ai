@@ -2,7 +2,7 @@ import copy
 import math
 from typing import List, Dict, Tuple
 
-class CropNode:
+class cropNode:
     def __init__(self, state, parent=None, action=None, cost=0):
         self.state = state  # Dictionary of environmental conditions + current crop choice
         self.parent = parent
@@ -19,7 +19,7 @@ class CropNode:
         return hash(frozenset(self.state.items()))
 
     def __eq__(self, other):
-        if isinstance(other, CropNode):
+        if isinstance(other, cropNode):
             return self.state == other.state 
         return False
     
@@ -110,6 +110,17 @@ class cropProblem:
         new_state = copy.deepcopy(state)
         new_state['current_crop'] = action
         return new_state
+    
+    def expand_node(self, node):
+        state = node.state
+        valid_actions = self.get_valid_actions(state)
+        child_nodes = []
+        for action in valid_actions:
+            child_state = self.apply_action(state, action)
+            child_cost = node.cost + self.calculate_cost(node.state, action)
+            child_node = cropNode(child_state, parent= node, action = action, cost = child_cost)
+            child_nodes.append(child_node)
+        return child_nodes
 
     def calculate_cost(self, state, action):
         """
@@ -244,29 +255,23 @@ def main():
     
     # 2. Create sample initial state (modify with your actual values)
     initial_state = {
-    'soil': {
-        'n': 20.8,       
-        'p': 134.2,       
-        'k': 199.9,      
-        'ph': 5.9,     
-        'organic_matter': 5.1,  
-        'soil_moisture': 21.2    
-    },
-    'climate': {
-        'temperature': 22.6,  
-        'humidity': 92.3,     
-        'rainfall': 112.7,    
-        'sunlight_exposure': 8.8  
-    },
-    'environmental': {
-        'irrigation_frequency': 1,  
-        'water_usage_efficiency': 1,
-        'fertilizer_usage':53.5,
-        'pest_pressure': 1.1
-    },
-    'current_crop': None,
-    'growth_stage': None
-}
+            'soil': {
+                'n': 110, 'p': 29, 'k': 30,
+                'ph': 7, 'organic_matter': 5, 'soil_moisture': 18
+            },
+            'climate': {
+                'temperature': 26, 'humidity': 54,
+                'rainfall': 150, 'sunlight_exposure': 7
+            },
+            'environmental': {
+                'irrigation_frequency': 2,
+                'water_usage_efficiency': 2,
+                'fertilizer_usage': 54,
+                'pest_pressure': 1
+            },
+            'current_crop': None,
+            'growth_stage': None
+        }
 
     # 3. Initialize problem and print recommendations
     problem = cropProblem(initial_state, crop_db)
