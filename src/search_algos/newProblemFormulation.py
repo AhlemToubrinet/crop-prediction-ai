@@ -50,7 +50,6 @@ class cropProblem:
         """
         self.state = initial_state 
         self.crop_db = crop_db
-        
         if priorities is not None:
             total = sum(priorities.values())
             self.weights = {
@@ -77,7 +76,7 @@ class cropProblem:
         for action in valid_actions:
             child_state = self.apply_action(state, action)
             child_cost = node.cost + self.calculate_cost(node.state, action)
-            child_node = CropNode(child_state, parent= node, action = action, cost = child_cost)
+            child_node = cropNode(child_state, parent= node, action = action, cost = child_cost)
             child_nodes.append(child_node)
         return child_nodes
     

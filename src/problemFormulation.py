@@ -31,7 +31,7 @@ class cropProblem:
                 'climate:{'temperature':22.6, 'humidity':92.3, 'rainfall':112.7, 'sunlight_exposure':8.8,}
                 'environmental':{'irrigation_frequency':3.5, 'water_usage_efficiency':2.8}
                 'current_crop':None
-                'growth_stage':None
+                'growth_stage':None   
             }
         """
         """ state_transition_model = crop_db = 

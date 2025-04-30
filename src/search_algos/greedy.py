@@ -6,7 +6,7 @@ import queue as Q
 import ast
 import random as R
 
-sys.path.append(os.path.abspath("C:/Users/ASUS/Documents/Crop Project/crop-prediction-ai/src"))
+sys.path.append(os.path.abspath("C:/Users/ASUS/Documents/Crop Project/crop-prediction-ai/src/search_algos/newProblemFormulation.py"))
 import newProblemFormulation as Problem
 
 class OrderedNode:
@@ -28,7 +28,7 @@ class GreedyBestFirstSearch:
 
         self.problem = problem
         self.heuristicValues = heuristics
-        self.initialState = Problem.CropNode(self.problem.state)
+        self.initialState = Problem.cropNode(self.problem.state)
 
     def set_frontier(self , node_list, heuristics):
         frontier = Q.PriorityQueue()
@@ -37,12 +37,12 @@ class GreedyBestFirstSearch:
             frontier.put(OrderedNode( node.state['current_crop'] , h_value))
         return frontier
     
-    def search(self):
+    def search(self , cropresults = 5):
 
         frontier = self.set_frontier(self.problem.expand_node(self.initialState), self.heuristicValues)
         list = []
         if not frontier.empty():
-            for _ in range(5):
+            for _ in range(cropresults):
                 best_node = frontier.get()
                 list.append(best_node)
 
@@ -68,6 +68,45 @@ class GreedyBestFirstSearch:
         return initial_crop
 
 
+    def print_top_recommendations_using_heuristics(self, top_n=5):
+        """Print top crop recommendations based on heuristic values"""
+        recommendations = []
+
+        for crop in self.problem.crop_db:
+            h_value = self.heuristicValues.get(crop, float('inf'))
+            if h_value != float('inf'):
+                recommendations.append((crop, h_value))
+
+        if not recommendations:
+            print("No suitable crops found for current conditions.")
+            return
+
+        # Normalize scores to 0-1 range (min-max normalization)
+        scores = [score for _, score in recommendations]
+        min_score, max_score = min(scores), max(scores)
+
+        if max_score == min_score:
+            normalized_recommendations = [(crop, 0.0) for crop, _ in recommendations]
+        else:
+            normalized_recommendations = [
+                (crop, (score - min_score) / (max_score - min_score))
+                for crop, score in recommendations
+            ]
+
+        # Sort by score (ascending - lower is better)
+        sorted_recommendations = sorted(normalized_recommendations, key=lambda x: x[1])[:top_n]
+
+        print("\n=== TOP CROP RECOMMENDATIONS ===")
+        for rank, (crop, norm_score) in enumerate(sorted_recommendations, 1):
+            match_percent = 100 * (1 - norm_score)
+            print(
+                f"{rank}. {crop.capitalize()} - "
+                f"Match: {max(0, match_percent):.2f}% "
+                f"(Score: {norm_score:.4f})"
+            )
+
+
+
 def Load_Files(filename):
     with open(filename, 'r') as f:
         data = f.read()
@@ -75,30 +114,31 @@ def Load_Files(filename):
     return heuristics
 
 def main():
-    initial_state = {
+    initial_state ={
     'soil': {
-        'n': 20.8,       
-        'p': 134.2,       
-        'k': 199.9,      
-        'ph': 5.9,     
-        'organic_matter': 5.1,  
-        'soil_moisture': 21.2    
+        'n': 115,                 # Moderate nitrogen
+        'p': 30,                 # Moderate phosphorus
+        'k': 30,                 # Moderate potassium
+        'ph': 6.8,               # Slightly acidic
+        'organic_matter': 4.0,   # Coffee prefers rich, organic soil
+        'soil_moisture': 30      # Moist but well-drained
     },
     'climate': {
-        'temperature': 22.6,  
-        'humidity': 92.3,     
-        'rainfall': 112.7,    
-        'sunlight_exposure': 8.8  
+        'temperature': 25,       # Optimal range: 18–24°C
+        'humidity': 68,          # Coffee thrives in high humidity
+        'rainfall': 120,        # Annual, in mm — prefers 1500–2500 mm
+        'sunlight_exposure': 5.5 # Moderate sunlight (often grown under shade)
     },
     'environmental': {
-        'irrigation_frequency': 1,  
-        'water_usage_efficiency': 1,
-        'fertilizer_usage':53.5,
-        'pest_pressure': 1.1
+        'irrigation_frequency': 2,  
+        'water_usage_efficiency': 1, 
+        'fertilizer_usage': 35,
+        'pest_pressure': 0.8       # Relatively low pressure in good environments
     },
     'current_crop': None,
     'growth_stage': None
-    }
+}
+
     heuristics = Load_Files("C:/Users/ASUS/Documents/Crop Project/crop-prediction-ai/src/search_algos/heuristics.txt")
     crop_db = Load_Files('./data/processed/crop_db.txt')
     if not crop_db:
@@ -111,9 +151,7 @@ def main():
     problem = Problem.cropProblem(initial_state, crop_db)
     Try = GreedyBestFirstSearch(problem, heuristics)
     result = Try.search()
-    for x in result:
-        print (x)
-
+    Try.print_top_recommendations_using_heuristics()
 if __name__ == '__main__':
     main()
 
