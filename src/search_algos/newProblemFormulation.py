@@ -1,6 +1,7 @@
 import copy
 import math
-from typing import List, Dict, Tuple
+from typing import Dict, Tuple
+
 
 class cropNode:
     def __init__(self, state, parent=None, action=None, cost=0):
@@ -15,15 +16,21 @@ class cropNode:
             self.depth = parent.depth + 1
 
     def __hash__(self):
-        """Hash based on immutable state components"""
-        return hash(frozenset(self.state.items()))
+        """Create a hash based on the current crop and environmental conditions"""
+        return hash((
+            self.state['current_crop'],
+            frozenset(self.state['soil'].items()),
+            frozenset(self.state['climate'].items()),
+            frozenset(self.state['environmental'].items())
+        ))
 
     def __eq__(self, other):
         if isinstance(other, cropNode):
             return self.state == other.state 
         return False
     
-class cropProblem:
+
+class CropProblem:
     def __init__(self, initial_state, crop_db, priorities=None):
         """initial_state is of the form:
             {
@@ -72,23 +79,18 @@ class cropProblem:
 
     def is_valid_action(self, state, reqs):
         # Check at least one soil parameter is in range
-        # if there is no parameter within the range return false
         if not any(
             reqs['soil'][param][0] <= state['soil'][param] <= reqs['soil'][param][2]
             for param in reqs['soil']
         ):
             return False
         # Check at least one climate parameter is in range
-        # if there is no parameter within the range return false
         if not any(
             reqs['climate'][param][0] <= state['climate'][param] <= reqs['climate'][param][2]
             for param in reqs['climate']
         ):
             return False
         # Check at least one environmental parameter is in range
-        # reaching this stage means that there is at least one parameter within the 
-        # range in soil and climate parameters so it still just to check the 
-        # environmantal parameters
         return any(
             reqs['environmental'][param][0] <= state['environmental'][param] <= reqs['environmental'][param][2]
             for param in reqs['environmental']
@@ -164,7 +166,7 @@ class cropProblem:
         
         return math.sqrt(score / n) if n > 0 else 0.0
     
-    def _env_score(self, state, parameters) :
+    def _env_score(self, state, parameters):
         """Special scoring for environmental parameters"""
         score = 0.0
         n = 0
@@ -173,7 +175,7 @@ class cropProblem:
         for param, (min_val, _, max_val) in parameters.items():
             global_min[param] = min_val
 
-        for param, (min_val,_, max_val) in parameters.items():
+        for param, (min_val, _, max_val) in parameters.items():
             if param in state:
                 val = state[param]
                 if val is not None:
@@ -188,10 +190,10 @@ class cropProblem:
                         # Above maximum - linear penalty since val - max_val > 0
                         param_score = (val - max_val) / range_size
                     else:
-                        param_score = ((val - min_val) / range_size ) ** 2  # Quadratic penalty
+                        param_score = ((val - min_val) / range_size) ** 2  # Quadratic penalty
                 else:        
                     if global_min[param] == 0:
-                        # If global_min is 0 , just use min_val directly
+                        # If global_min is 0, just use min_val directly
                         param_score = min_val  # Lower min_val = better (no division needed)
                     else:
                         param_score = min_val / global_min[param]  # Normalized penalty
@@ -230,6 +232,30 @@ class cropProblem:
                 f"(Score: {norm_score:.4f})"
             )
 
+    def heuristic(self, state, action):
+        """Estimates how far the crop's requirements are from current conditions."""
+        reqs = self.crop_db[action]
+        penalty = 0.0
+
+        # Soil mismatch penalty
+        for param, (min_val, mean_val, max_val) in reqs['soil'].items():
+            val = state['soil'][param]
+            if val < min_val or val > max_val:
+                penalty += 1.0  # Simple count of out-of-range params
+
+        # Climate mismatch penalty
+        for param, (min_val, mean_val, max_val) in reqs['climate'].items():
+            val = state['climate'][param]
+            if val < min_val or val > max_val:
+                penalty += 1.0
+
+        # Environmental mismatch penalty
+        for param, (min_val, mean_val, max_val) in reqs['environmental'].items():
+            val = state['environmental'][param]
+            if val < min_val or val > max_val:
+                penalty += 1.0
+
+        return penalty  # Lower = better
 
 
 def load_crop_db(file_path):
