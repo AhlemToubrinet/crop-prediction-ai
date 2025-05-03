@@ -1,6 +1,6 @@
 import heapq
 from typing import List, Tuple
-from newProblemFormulation import CropNode
+from newProblemFormulation import cropNode
 
 
 def a_star_search(problem, top_n=10):
@@ -8,7 +8,7 @@ def a_star_search(problem, top_n=10):
     open_list = []
     closed_list = set()
     
-    initial_node = CropNode(problem.state)
+    initial_node = cropNode(problem.state)
     # For initial node, we don't have an action yet, so heuristic is 0
     initial_h = 0
     heapq.heappush(open_list, (initial_h, initial_node))
@@ -43,12 +43,14 @@ def a_star_search(problem, top_n=10):
                 h_score = 0
                 
             f_score = new_cost + h_score
-            new_node = CropNode(new_state, current_node, action, new_cost)
+            new_node = cropNode(new_state, current_node, action, new_cost)
             
             if new_node not in closed_list:
                 heapq.heappush(open_list, (f_score, new_node))
     
     return sorted(recommendations, key=lambda x: x[1])[:top_n]
+
+
 
 
 def print_a_star_recommendations(recommendations, top_n=10):
@@ -58,9 +60,9 @@ def print_a_star_recommendations(recommendations, top_n=10):
         return
     
     # Normalize scores to 0-1 range
-    max_score = max(score for _, score in recommendations)
+    
     normalized_recommendations = [
-        (crop, score / max_score) 
+        (crop, score ) 
         for crop, score in recommendations[:top_n]
     ]
     
@@ -72,3 +74,4 @@ def print_a_star_recommendations(recommendations, top_n=10):
             f"Match: {max(0, match_percent):.2f}% "
             f"(Score: {norm_score:.4f})"
         )
+

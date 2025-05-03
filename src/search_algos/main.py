@@ -1,4 +1,4 @@
-from newProblemFormulation import CropProblem, load_crop_db
+from newProblemFormulation import cropProblem, load_crop_db
 from astar import a_star_search, print_a_star_recommendations
 
 
@@ -28,7 +28,7 @@ def main():
     }
 
     # 3. Initialize problem
-    problem = CropProblem(initial_state, crop_db)
+    problem = cropProblem(initial_state, crop_db)
 
     # 4. Run A* search and print results
     recommendations = a_star_search(problem, 10)

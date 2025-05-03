@@ -1,7 +1,7 @@
 import random
 from copy import deepcopy
 from typing import List, Dict, Tuple
-from newProblemFormulation import cropNode, cropProblem
+from newProblemFormulation2 import cropNode, cropProblem
 
 class CropGeneticAlgorithm:
     def __init__(self, problem, population_size=30,  # Increased population size
