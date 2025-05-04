@@ -1,6 +1,7 @@
 import heapq
 from typing import List, Tuple
 from newProblemFormulation import cropNode
+from heuristicGenerator import HeuristicCalculator
 
 
 def a_star_search(problem, top_n=10):
@@ -9,6 +10,10 @@ def a_star_search(problem, top_n=10):
     closed_list = set()
     
     initial_node = cropNode(problem.state)
+    calculator = HeuristicCalculator(
+        current_state=problem.state,
+        crop_db_path= './data/processed/crop_db.txt'
+    )
     # For initial node, we don't have an action yet, so heuristic is 0
     initial_h = 0
     heapq.heappush(open_list, (initial_h, initial_node))
@@ -37,11 +42,8 @@ def a_star_search(problem, top_n=10):
             new_cost = current_node.cost + action_cost
             
             # Calculate heuristic for the new state
-            if hasattr(problem, 'heuristic'):
-                h_score = problem.heuristic(new_state, action)
-            else:
-                h_score = 0
-                
+            h_score = calculator.heuristic(action)
+            
             f_score = new_cost + h_score
             new_node = cropNode(new_state, current_node, action, new_cost)
             
