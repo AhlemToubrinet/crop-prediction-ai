@@ -1,6 +1,6 @@
 import heapq
 from typing import List, Tuple
-from newProblemFormulation import cropNode
+from search_algos.ProblemFormulation import cropNode
 from heuristicGenerator import HeuristicCalculator
 
 
