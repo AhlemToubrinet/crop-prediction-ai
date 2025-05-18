@@ -711,15 +711,7 @@ class GeneralHeuristicBasedSearch:
         sorted_recommendations = sorted(normalized, key=lambda x: x[1])[:top_n]
 
         return sorted_recommendations
-    def classify_suitability(self, cost: float) -> str:
-        if cost < 0.2:
-            return "Excellent"
-        elif cost < 0.4:
-            return "Good"
-        elif cost < 0.6:
-            return "Fair"
-        else:
-            return "Poor"
+    
     
     def print_top_recommendations_using_heuristics(self, top_n=5):
         """Print top crop recommendations based on selected search mode (Greedy or A*)"""
@@ -762,7 +754,7 @@ class GeneralHeuristicBasedSearch:
                 f"{rank}. {crop.capitalize()} - "
                 f"Match: {max(0, match_percent):.2f}% "
                 f"(Score: {norm_score:.4f})"
-                f"(suitability: {self.classify_suitability(node.cost)})"
+                
                 
             )
 

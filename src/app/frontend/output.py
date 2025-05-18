@@ -255,7 +255,7 @@ project_root = Path(__file__).parents[2]  # Adjust if needed
 sys.path.insert(0, str(project_root))
 
 # Now import using full package path
-from app.backend.algorithms import CropProblem,HeuristicCalculator,GeneralHeuristicBasedSearch,HeuristicCalculator, CropGeneticAlgorithm, cropNode , OrderedNode
+from app.backend.algorithms import CropProblem,HeuristicCalculator,GeneralHeuristicBasedSearch,HeuristicCalculator, CropGeneticAlgorithm, cropNode 
 
 # Path setup for assets
 OUTPUT_PATH = Path(__file__).parent
