@@ -241,19 +241,21 @@
 
 # window.resizable(False, False)
 # window.mainloop()
-
 from pathlib import Path
 from tkinter import Tk, Canvas, Button, PhotoImage, StringVar, Radiobutton
 import subprocess
 import sys
 import json
+import os
+
+
 
 # Add project root to Python path (assuming output.py is in src/app/frontend/)
 project_root = Path(__file__).parents[2]  # Adjust if needed
 sys.path.insert(0, str(project_root))
 
 # Now import using full package path
-from app.backend.algorithms import CropProblem, CropGeneticAlgorithm, cropNode
+from app.backend.algorithms import CropProblem,HeuristicCalculator,GeneralHeuristicBasedSearch,HeuristicCalculator, CropGeneticAlgorithm, cropNode , OrderedNode
 
 # Path setup for assets
 OUTPUT_PATH = Path(__file__).parent
@@ -431,16 +433,100 @@ def display_genetic_algorithm_results(input_data):
     except Exception as e:
         print(f"Error displaying results: {e}")
 
+def display_greedy_algorithm_results(input_data):
+    """Display results from greedy algorithm with new folder structure"""
+    try:
+        # Define paths - all files now in backend folder
+        backend_dir = os.path.join(project_root, "app", "backend")
+        crop_db_path = os.path.join(backend_dir, "crop_db.json")
+        heuristics_path = os.path.join(backend_dir, "heuristics.txt")
+
+        # Initialize calculator with current state
+        initial_state = {
+            'soil': input_data['soil'],
+            'climate': input_data['climate'],
+            'environmental': input_data['environmental'],
+            'current_crop': None
+        }
+
+        calculator = HeuristicCalculator(
+            current_state=initial_state,
+            crop_db_path=crop_db_path
+        )
+
+        # Generate and save heuristics
+        calculator.run(heuristics_path)
+        
+        # Create problem and search instance
+        problem = CropProblem(initial_state, calculator.crop_db)
+        ga = GeneralHeuristicBasedSearch(problem, calculator.heuristics, "greedy")
+        
+        # Get top recommendations
+        results = ga.search(6)  # Returns list of OrderedNode objects
+        
+        if not results:
+            raise ValueError("No suitable crops found for current conditions")
+
+        # Display the best crop at the top
+        if results:
+            best_crop = results[0].node_name.capitalize()
+            best_score = results[0].heuristic_value
+            best_match = f"{100 * (1 - best_score):.2f}%"
+            canvas.itemconfig(
+                "best_crop_display",
+                text=f"{best_crop} ({best_match} match)"
+            )
+        def classify_suitability(cost: float) -> str:
+               if cost < 0.2:
+                  return "Excellent"
+               elif cost < 0.4:
+                   return "Good"
+               elif cost < 0.6:
+                    return "Fair"
+               else:
+                    return "Poor"
+
+
+   
+    
+        # Display all results
+        for i, (result, y_pos) in enumerate(zip(results, result_positions)):
+            canvas.itemconfig(f"crop_{i}", text=result.node_name.capitalize())
+            suitability = classify_suitability(result.heuristic_value)
+            canvas.itemconfig(f"suitability_{i}", text=suitability)
+            canvas.itemconfig(f"cost_{i}", text=f"{result.heuristic_value:.4f}")
+            canvas.itemconfig(f"match_{i}", text=f"{100 * (1 - result.heuristic_value):.2f}%")
+            
+        # Clear any remaining rows
+        for j in range(len(results), 6):
+            canvas.itemconfig(f"crop_{j}", text="")
+            canvas.itemconfig(f"suitability_{j}", text="")
+            canvas.itemconfig(f"cost_{j}", text="")
+            canvas.itemconfig(f"match_{j}", text="")
+            
+    except Exception as e:
+        print(f"Error displaying results: {e}")
+        canvas.itemconfig("best_crop_display", text="Calculation Error")
+        for i in range(6):
+            canvas.itemconfig(f"crop_{i}", text="")
+            canvas.itemconfig(f"suitability_{i}", text="Error")
+            canvas.itemconfig(f"cost_{i}", text="")
+            canvas.itemconfig(f"match_{i}", text="")
+
 def on_method_change(*args):
     """Handle method selection change"""
     if len(sys.argv) > 1:
         input_data = json.loads(sys.argv[1])
-        if selected_method.get() == "Genetic":
+        method = selected_method.get()
+        
+        if method == "Genetic":
             display_genetic_algorithm_results(input_data)
+        elif method == "Greedy":
+            display_greedy_algorithm_results(input_data)
         # Add other method handlers here as needed
 
-# Connect the callback
-selected_method.trace("w", on_method_change)
+# Connect the method change handler
+selected_method.trace('w', on_method_change)
 
 # Navigation buttons
 def switch_to_input():
@@ -460,10 +546,14 @@ button_7.place(x=699.0, y=530.0, width=171.0, height=48.0)
 # Initialization --------------------------------------------------------------
 
 # Display results if data was passed and Genetic is selected
-if len(sys.argv) > 1 and selected_method.get() == "Genetic":
+if len(sys.argv) > 1:
     try:
         input_data = json.loads(sys.argv[1])
-        display_genetic_algorithm_results(input_data)
+        # Call the appropriate display function based on initial selection
+        if selected_method.get() == "Genetic":
+            display_genetic_algorithm_results(input_data)
+        elif selected_method.get() == "Greedy":
+            display_greedy_algorithm_results(input_data)
     except json.JSONDecodeError:
         print("Invalid input data format")
 
