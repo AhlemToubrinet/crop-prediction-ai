@@ -7,7 +7,8 @@
 
 from pathlib import Path
 
-# from tkinter import *
+
+from tkinter import *
 # Explicit imports to satisfy Flake8
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
 import subprocess
@@ -15,11 +16,12 @@ import sys
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path(
-    r"C:\Users\OASIS\Desktop\Tkinter-Designer-master\CropRecomApp\build\assets\frame2"
+    r"./assets/frame2"
 )
 
 
 def relative_to_assets(path: str) -> Path:
+    print(ASSETS_PATH / Path(path))
     return ASSETS_PATH / Path(path)
 
 
@@ -86,7 +88,7 @@ def switch_to_input():
     subprocess.Popen(
         [
             sys.executable,
-            "C:/Users/OASIS/Desktop/Tkinter-Designer-master/CropRecomApp/build/input.py",
+            "./src/app/frontend/input.py",
         ]
     )
 
@@ -107,7 +109,7 @@ def switch_to_LearnMore():
     subprocess.Popen(
         [
             sys.executable,
-            "C:/Users/OASIS/Desktop/Tkinter-Designer-master/CropRecomApp/build/LearnMore.py",
+            "./src/app/frontend/LearnMore.py",
         ]
     )
 

@@ -12,7 +12,7 @@ import sys
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path(
-    r"C:\Users\OASIS\Desktop\Tkinter-Designer-master\CropRecomApp\build\assets\frame3"
+    r"./assets/frame3"
 )
 
 
@@ -87,7 +87,7 @@ def switch_to_output():
     subprocess.Popen(
         [
             sys.executable,
-            "C:/Users/OASIS/Desktop/Tkinter-Designer-master/CropRecomApp/build/output.py",
+            "./src/app/frontend/output.py",
         ]
     )
 

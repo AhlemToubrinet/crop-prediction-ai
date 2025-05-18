@@ -3,6 +3,7 @@
 
 
 from pathlib import Path
+import json
 
 # from tkinter import *
 # Explicit imports to satisfy Flake8
@@ -12,7 +13,7 @@ import sys
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path(
-    r"C:\Users\OASIS\Desktop\Tkinter-Designer-master\CropRecomApp\build\assets\frame1"
+    r"./assets/frame1"
 )
 
 
@@ -271,12 +272,48 @@ canvas.create_text(
 button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
 
 
+# def switch_to_output():
+#     window.destroy()
+#     subprocess.Popen(
+#         [
+#             sys.executable,
+#             "./src/app/frontend/output.py",
+#         ]
+#     )
+
+def collect_inputs():
+    """Collect all input values from the form"""
+    return {
+        'soil': {
+            'n': float(entry_1.get()),
+            'p': float(entry_4.get()),
+            'k': float(entry_2.get()),
+            'ph': float(entry_5.get()),
+            'organic_matter': float(entry_14.get()),
+            'soil_moisture': float(entry_3.get())
+        },
+        'climate': {
+            'temperature': float(entry_6.get()),
+            'humidity': float(entry_12.get()),
+            'rainfall': float(entry_11.get()),
+            'sunlight_exposure': float(entry_13.get())
+        },
+        'environmental': {
+            'irrigation_frequency': float(entry_7.get()),
+            'water_usage_efficiency': float(entry_9.get()),
+            'fertilizer_usage': float(entry_8.get()),
+            'pest_pressure': float(entry_10.get())
+        }
+    }
+
 def switch_to_output():
+    input_data = collect_inputs()
     window.destroy()
     subprocess.Popen(
         [
             sys.executable,
-            "C:/Users/OASIS/Desktop/Tkinter-Designer-master/CropRecomApp/build/output.py",
+            "./src/app/frontend/output.py",
+            json.dumps(input_data)  # Pass data as JSON string
         ]
     )
 
@@ -297,7 +334,7 @@ def switch_to_input():
     subprocess.Popen(
         [
             sys.executable,
-            "C:/Users/OASIS/Desktop/Tkinter-Designer-master/CropRecomApp/build/input.py",
+            "./src/app/frontend/input.py",
         ]
     )
 
