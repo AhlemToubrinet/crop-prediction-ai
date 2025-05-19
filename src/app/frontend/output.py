@@ -26,12 +26,6 @@ def relative_to_assets(path: str) -> Path:
 window = Tk()
 window.geometry("900x590")
 window.configure(bg="#FFFFFF")
-# here is alaa i am using this to destroy the current window and open the more.py page
-
-def open_more_and_close_current(root):
-    root.destroy()  
-    subprocess.Popen([sys.executable, "./src/app/frontend/More.py"])
-
 
 canvas = Canvas(
     window,
@@ -143,13 +137,12 @@ for method, (x, y, label) in methods.items():
 
 # Buttons
 for i, y in enumerate([234, 276, 321, 364, 408, 451], start=1):
-    
     button_image = PhotoImage(file=relative_to_assets(f"button_{i}.png"))
     button = Button(
         image=button_image,
         borderwidth=0,
         highlightthickness=0,
-        command=lambda: open_more_and_close_current(window),
+        command=lambda: subprocess.Popen([sys.executable, "./src/app/frontend/More.py"]),
     )
     button.image = button_image
     button.place(x=661.0, y=y, width=90.0, height=30.0)
