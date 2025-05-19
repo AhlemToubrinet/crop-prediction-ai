@@ -512,3 +512,250 @@ class CropGeneticAlgorithm:
             'suitability': self.classify_suitability(node.cost),
             'match_percentage': (1 - node.cost) * 100
         } for node in top_n]
+# General Search Algorithm Implementation
+
+BASE_DIR = os.getcwd()
+crop_db_path = os.path.join(BASE_DIR, '..', 'data', 'processed', 'crop_db.txt')
+
+
+class HeuristicCalculator:
+    def __init__(self, current_state, crop_db_path , priorities = None):
+        if priorities is not None:
+            total = sum(priorities.values())
+            self.priorities = {
+                'soil': priorities.get('soil', 1) / total,
+                'climate': priorities.get('climate', 1) / total,
+                'environmental': priorities.get('environmental', 1) / total
+            }
+        else:
+            # Default equal weights if no priorities provided
+            self.priorities = {'soil': 0.4, 'climate': 0.3, 'environmental': 0.3}
+            
+        self.current_state = current_state
+        self.crop_db = self.load_crop_db(crop_db_path)
+        self.heuristics = {}
+    def get_valid_crops(self, initial_state):
+
+        problem = CropProblem(self.current_state, self.crop_db)
+        return problem.get_valid_actions(self.current_state)
+
+    def heuristic(self, crop):
+        crop_conditions = self.crop_db.get(crop, {})
+        if not crop_conditions:
+            return float('inf')  # If crop or growth stage not found, assign maximum cost
+        total_cost = 0
+
+        if 'soil' in self.current_state:
+            total_cost += self._compute_general_cost(self.current_state['soil'], crop_conditions.get('soil', {}), use_min=False, category="soil")
+
+        if 'climate' in self.current_state:
+            total_cost += self._compute_general_cost(self.current_state['climate'], crop_conditions.get('climate', {}), use_min=False, category="climate")
+                
+        if 'environmental' in self.current_state:
+           total_cost += self._compute_general_cost(self.current_state['environmental'], crop_conditions.get('environmental', {}), use_min=True, category="environmental")           
+        
+        return total_cost* 0.01 # we multiplied by 0.01 to scale values with costs  
+    
+    def load_crop_db(self, filepath):
+        with open(filepath, 'r') as file:
+            data = file.read()
+        return ast.literal_eval(data)
+    
+
+    def _compute_general_cost(self, actual, ideal, use_min, category):
+        total_cost = 0
+
+        for factor, actual_value in actual.items():
+            ideal_range = ideal.get(factor)
+            if not ideal_range:
+                continue
+
+            min_val, mean_val, max_val = ideal_range
+            priority = self.priorities.get(category, 0.33)  # default if missing
+
+            target_value = min_val if use_min else mean_val
+            range_span = max_val - min_val + 1e-6  # Prevent division by zero
+
+            # Mean Squared Error + soft z-distance
+            mse = ((actual_value - target_value) / range_span) ** 2
+            z_score = abs(actual_value - mean_val) / (range_span / 4)  # rough std dev
+
+            cost = priority * (mse + z_score)
+
+            # Penalty: out-of-range -> apply power penalty based on distance from boundary
+            if actual_value < min_val:
+                distance = min_val - actual_value
+            elif actual_value > max_val:
+                distance = actual_value - max_val
+            else:
+                distance = 0
+
+            if distance > 0:
+                margin = 0.1 * range_span  # Tolerance buffer
+                if distance > margin:
+                    penalty = priority * ((distance - margin) / range_span)
+                    cost += penalty
+
+            # Reward: inside range and close to mean
+            if min_val <= actual_value <= max_val:
+                normalized_dist = abs(actual_value - mean_val) / (range_span / 2)
+                reward = priority * (1 - normalized_dist)
+                cost -= reward
+
+            total_cost += cost
+
+        return total_cost
+
+    
+    def Heuristics (self, initial_state):
+        valid_crops = self.get_valid_crops(self.current_state)
+        if not valid_crops:
+            print("No valid crops found.")
+            return []
+
+        crop_scores = [(crop, self.heuristic( crop)) for crop in valid_crops]
+        return crop_scores
+
+    def generate_heuristics(self):
+        for crop_name, crop_info in self.Heuristics(self.current_state):
+            score = crop_info
+            self.heuristics[crop_name] = score
+
+    def save_to_file(self, filepath):
+        with open(filepath, 'w') as f:
+            f.write(str(self.heuristics))  # Save as string
+
+    def run(self, output_path):
+        self.generate_heuristics()
+        self.save_to_file(output_path)
+        # print(f"Heuristic values saved to: {output_path}")
+
+
+  
+class OrderedNode:
+    def __init__(self, node_name , heuristic_value):
+
+        self.heuristic_value = heuristic_value
+        self.node_name = node_name
+
+    def __lt__(self, other):  # used by PriorityQueue for comparison
+        return self.heuristic_value < other.heuristic_value
+    
+    def __str__(self):
+        return f"( {self.node_name} , {self.heuristic_value} ) "
+
+class GeneralHeuristicBasedSearch:
+    
+    def __init__(self, problem, heuristics, mode):
+        self.problem = problem
+        self.heuristicValues = heuristics
+        self.mode = mode
+        self.initialState = cropNode(self.problem.state)
+
+    def set_frontier(self, node_list, heuristics):
+        frontier = queue.PriorityQueue()
+        for node in node_list:
+            crop_name = node.state['current_crop']
+            h_value = heuristics.get(crop_name, float('inf'))
+
+            if self.mode == "a_star":
+                g_value = node.cost if hasattr(node, 'cost') else 0  
+                f_value = g_value + h_value
+            elif self.mode == "greedy":
+                f_value = h_value   
+
+            frontier.put(OrderedNode(crop_name, f_value))
+        return frontier
+
+    def search(self, cropresults=5):
+        frontier = self.set_frontier(self.problem.expand_node(self.initialState), self.heuristicValues)
+        result = []
+
+        if not frontier.empty():
+            for _ in range(cropresults):
+                best_node = frontier.get()
+                result.append(best_node)
+
+            return result    
+        
+        return None, None
+    
+    def get_top_recommendations(self, top_n=5):
+        """get top crop recommendations based on selected search mode (Greedy or A*)"""
+        recommendations = []
+        child_nodes = self.problem.expand_node(self.initialState)
+
+        for node in child_nodes:
+            
+            if self.mode == "a_star":
+                g_value = node.cost  
+                h_value = self.heuristicValues.get(node.action, float('inf'))  
+                score = g_value + h_value
+            elif self.mode == "greedy":  
+                score = self.heuristicValues.get(node.action, float('inf'))
+
+            recommendations.append((node.action, score))
+
+        if not recommendations:
+            print("No suitable crops found for current conditions.")
+            return
+
+        scores = [score for _, score in recommendations]
+        min_score, max_score = min(scores), max(scores)
+
+        if max_score == min_score:
+            normalized = [(crop, 0.0) for crop, _ in recommendations]
+        else:
+            normalized = [(crop, score)for crop, score in recommendations]
+
+        sorted_recommendations = sorted(normalized, key=lambda x: x[1])[:top_n]
+
+        return sorted_recommendations
+    
+    
+    def print_top_recommendations_using_heuristics(self, top_n=5):
+        """Print top crop recommendations based on selected search mode (Greedy or A*)"""
+        recommendations = []
+
+        
+        child_nodes = self.problem.expand_node(self.initialState)
+
+        for node in child_nodes:
+            
+            if self.mode == "a_star":
+                g_value = node.cost  
+                h_value = self.heuristicValues.get(node.action, float('inf'))  
+                score = g_value + h_value
+            elif self.mode == "greedy":  
+                score = self.heuristicValues.get(node.action, float('inf'))
+
+            recommendations.append((node.action, score))
+
+        if not recommendations:
+            print("No suitable crops found for current conditions.")
+            return
+
+        scores = [score for _, score in recommendations]
+        min_score, max_score = min(scores), max(scores)
+
+        if max_score == min_score:
+            normalized = [(crop, 0.0) for crop, _ in recommendations]
+        else:
+            normalized = [(crop, (score) / (max_score)) for crop, score in recommendations]
+
+        sorted_recommendations = sorted(normalized, key=lambda x: x[1])[:top_n]
+
+
+
+        print(f"\n=== TOP CROP RECOMMENDATIONS ({self.mode.upper()}) ===")
+        for rank, (crop, norm_score) in enumerate(sorted_recommendations, 1):
+            match_percent = 100 * (1 - norm_score)
+            print(
+                f"{rank}. {crop.capitalize()} - "
+                f"Match: {max(0, match_percent):.2f}% "
+                f"(Score: {norm_score:.4f})"
+                
+                
+            )
+
+ 
