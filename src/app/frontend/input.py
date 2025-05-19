@@ -272,14 +272,7 @@ canvas.create_text(
 button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
 
 
-# def switch_to_output():
-#     window.destroy()
-#     subprocess.Popen(
-#         [
-#             sys.executable,
-#             "./src/app/frontend/output.py",
-#         ]
-#     )
+
 
 def collect_inputs():
     """Collect all input values from the form"""
