@@ -334,6 +334,8 @@ def on_method_change(*args):
             display_genetic_algorithm_results(input_data)
         elif method == "Greedy":
             display_greedy_algorithm_results(input_data)
+        elif method == "CSP":
+            display_CSP_algorithm_results(input_data)
         # Add other method handlers here as needed
 
 # Connect the method change handler
