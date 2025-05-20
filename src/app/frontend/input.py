@@ -24,12 +24,12 @@ def relative_to_assets(path: str) -> Path:
 window = Tk()
 
 window.geometry("900x590")
-window.configure(bg="#FFFFFF")
+window.configure(bg="#f5fef0")
 
 
 canvas = Canvas(
     window,
-    bg="#FFFFFF",
+    bg="#f5fef0",
     height=590,
     width=900,
     bd=0,
@@ -38,16 +38,16 @@ canvas = Canvas(
 )
 
 canvas.place(x=0, y=0)
-canvas.create_rectangle(26.5, 220.5, 860.0, 221.0, fill="#9B9898", outline="")
+canvas.create_rectangle(26.5, 220.5, 860.0, 221.0, fill="#f5fef0", outline="")
 
-canvas.create_rectangle(26.5, 362.5, 868.0, 363.0, fill="#9B9898", outline="")
+canvas.create_rectangle(26.5, 362.5, 868.0, 363.0, fill="#f5fef0", outline="")
 
 canvas.create_text(
     34.0,
     70.0,
     anchor="nw",
     text="Nitrogen (pmm)",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
@@ -56,12 +56,12 @@ canvas.create_text(
     70.0,
     anchor="nw",
     text="Phosphorus (pmm)",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
 canvas.create_text(
-    34.0, 142.0, anchor="nw", text="pH Level", fill="#9B9898", font=("Inter", 12 * -1)
+    34.0, 142.0, anchor="nw", text="pH Level", fill="#000000", font=("Inter", 12 * -1)
 )
 
 canvas.create_text(
@@ -69,7 +69,7 @@ canvas.create_text(
     278.0,
     anchor="nw",
     text="temperature (C)",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
@@ -78,7 +78,7 @@ canvas.create_text(
     418.0,
     anchor="nw",
     text="irrigation frequency(x/week)",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
@@ -87,7 +87,7 @@ canvas.create_text(
     418.0,
     anchor="nw",
     text="water usage efficiency(1–5)",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
@@ -96,7 +96,7 @@ canvas.create_text(
     418.0,
     anchor="nw",
     text="fertilizer usage",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
@@ -105,7 +105,7 @@ canvas.create_text(
     278.0,
     anchor="nw",
     text="humidity (%)",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
@@ -114,7 +114,7 @@ canvas.create_text(
     278.0,
     anchor="nw",
     text="rainfall (mm/mo)",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
@@ -123,7 +123,7 @@ canvas.create_text(
     278.0,
     anchor="nw",
     text="sunlight exposure(h/day)",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
@@ -132,7 +132,7 @@ canvas.create_text(
     70.0,
     anchor="nw",
     text="Potassium (pmm) ",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
@@ -141,53 +141,53 @@ canvas.create_text(
     70.0,
     anchor="nw",
     text="Soil Moisture (%)",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
 entry_image_1 = PhotoImage(file=relative_to_assets("entry_1.png"))
 entry_bg_1 = canvas.create_image(118.5, 109.5, image=entry_image_1)
-entry_1 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_1 = entry_1 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_1.place(x=40.0, y=94.0, width=157.0, height=29.0)
 
 entry_image_2 = PhotoImage(file=relative_to_assets("entry_2.png"))
 entry_bg_2 = canvas.create_image(536.5, 109.5, image=entry_image_2)
-entry_2 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_2 = Entry(bd=0, bg="#f5fef0", fg="#000716", highlightthickness=0)
 entry_2.place(x=458.0, y=94.0, width=157.0, height=29.0)
 
 entry_image_3 = PhotoImage(file=relative_to_assets("entry_3.png"))
 entry_bg_3 = canvas.create_image(745.5, 109.5, image=entry_image_3)
-entry_3 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_3 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_3.place(x=667.0, y=94.0, width=157.0, height=29.0)
 
 entry_image_4 = PhotoImage(file=relative_to_assets("entry_4.png"))
 entry_bg_4 = canvas.create_image(327.5, 109.5, image=entry_image_4)
-entry_4 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_4 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_4.place(x=249.0, y=94.0, width=157.0, height=29.0)
 
 entry_image_5 = PhotoImage(file=relative_to_assets("entry_5.png"))
 entry_bg_5 = canvas.create_image(118.5, 181.5, image=entry_image_5)
-entry_5 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_5 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_5.place(x=40.0, y=166.0, width=157.0, height=29.0)
 
 entry_image_6 = PhotoImage(file=relative_to_assets("entry_6.png"))
 entry_bg_6 = canvas.create_image(118.5, 317.5, image=entry_image_6)
-entry_6 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_6 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_6.place(x=40.0, y=302.0, width=157.0, height=29.0)
 
 entry_image_7 = PhotoImage(file=relative_to_assets("entry_7.png"))
 entry_bg_7 = canvas.create_image(118.5, 457.5, image=entry_image_7)
-entry_7 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_7 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_7.place(x=40.0, y=442.0, width=157.0, height=29.0)
 
 entry_image_8 = PhotoImage(file=relative_to_assets("entry_8.png"))
 entry_bg_8 = canvas.create_image(540.5, 457.5, image=entry_image_8)
-entry_8 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_8 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_8.place(x=462.0, y=442.0, width=157.0, height=29.0)
 
 entry_image_9 = PhotoImage(file=relative_to_assets("entry_9.png"))
 entry_bg_9 = canvas.create_image(327.5, 457.5, image=entry_image_9)
-entry_9 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_9 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_9.place(x=249.0, y=442.0, width=157.0, height=29.0)
 
 canvas.create_text(
@@ -195,33 +195,33 @@ canvas.create_text(
     418.0,
     anchor="nw",
     text="pest pressure(1–5)",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
 entry_image_10 = PhotoImage(file=relative_to_assets("entry_10.png"))
 entry_bg_10 = canvas.create_image(749.5, 457.5, image=entry_image_10)
-entry_10 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_10 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_10.place(x=671.0, y=442.0, width=157.0, height=29.0)
 
 entry_image_11 = PhotoImage(file=relative_to_assets("entry_11.png"))
 entry_bg_11 = canvas.create_image(540.5, 317.5, image=entry_image_11)
-entry_11 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_11 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_11.place(x=462.0, y=302.0, width=157.0, height=29.0)
 
 entry_image_12 = PhotoImage(file=relative_to_assets("entry_12.png"))
 entry_bg_12 = canvas.create_image(331.5, 317.5, image=entry_image_12)
-entry_12 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_12 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_12.place(x=253.0, y=302.0, width=157.0, height=29.0)
 
 entry_image_13 = PhotoImage(file=relative_to_assets("entry_13.png"))
 entry_bg_13 = canvas.create_image(749.5, 317.5, image=entry_image_13)
-entry_13 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_13 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_13.place(x=671.0, y=302.0, width=157.0, height=29.0)
 
 entry_image_14 = PhotoImage(file=relative_to_assets("entry_14.png"))
 entry_bg_14 = canvas.create_image(327.5, 181.5, image=entry_image_14)
-entry_14 = Entry(bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+entry_14 = Entry(bd=0,bg="#f5fef0", fg="#000716",highlightthickness=0)
 entry_14.place(x=249.0, y=166.0, width=157.0, height=29.0)
 
 canvas.create_text(
@@ -229,7 +229,7 @@ canvas.create_text(
     142.0,
     anchor="nw",
     text="organic matter(%)",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 12 * -1),
 )
 
@@ -238,7 +238,7 @@ canvas.create_text(
     29.0,
     anchor="nw",
     text="Soil Properties",
-    fill="#686868",
+    fill="#000000",
     font=("Inter MediumItalic", 17 * -1),
 )
 
@@ -247,7 +247,7 @@ canvas.create_text(
     15.0,
     anchor="nw",
     text="Fill in your farm’s soil/weather data.",
-    fill="#9B9898",
+    fill="#000000",
     font=("Inter", 14 * -1),
 )
 
@@ -256,7 +256,7 @@ canvas.create_text(
     237.0,
     anchor="nw",
     text="Climate Conditions",
-    fill="#686868",
+    fill="#000000",
     font=("Inter MediumItalic", 17 * -1),
 )
 
@@ -265,7 +265,7 @@ canvas.create_text(
     383.0,
     anchor="nw",
     text=" Environmental Factors",
-    fill="#686868",
+    fill="#000000",
     font=("Inter MediumItalic", 17 * -1),
 )
 # get recommendations button

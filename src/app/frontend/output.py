@@ -23,13 +23,14 @@ def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
 # Main window setup
+best_crop = ""
 window = Tk()
 window.geometry("900x590")
-window.configure(bg="#FFFFFF")
+window.configure(bg="#f5fef0")
 
 canvas = Canvas(
     window,
-    bg="#FFFFFF",
+    bg="#f5fef0",
     height=590,
     width=900,
     bd=0,
@@ -45,14 +46,14 @@ canvas.create_text(
     16.0, 20.0,
     anchor="nw",
     text="📊 Your Crop Recommendations",
-    fill="#5BC893",
+    fill="#82c959",
     font=("Inter SemiBoldItalic", 26 * -1),
 )
 canvas.create_text(
     40.0, 73.0,
     anchor="nw",
     text="The best crop for your land is:",
-    fill="#848484",
+    fill="#000000",
     font=("Inter SemiBoldItalic", 18 * -1),
 )
 
@@ -60,7 +61,7 @@ best_crop_text = canvas.create_text(
     300.0, 73.0,  # Positioned right after "The best crop for your land is:"
     anchor="nw",
     text="",  # Will be filled dynamically
-    fill="#3AB67D",  # Green color to match your theme
+    fill="#000000",  # Green color to match your theme
     font=("Inter SemiBoldItalic", 18 * -1),
     tags="best_crop_display"
 )
@@ -81,7 +82,7 @@ for x, y, text in headers:
         x, y,
         anchor="nw",
         text=text,
-        fill="#848484",
+        fill="#000000",
         font=("Inter Medium", 15 * -1),
     )
 
@@ -89,20 +90,20 @@ for x, y, text in headers:
 result_positions = [239, 283, 326, 369, 413, 456]
 for i, y in enumerate(result_positions):
     canvas.create_text(69.0, y, anchor="nw", text="", tags=f"crop_{i}",
-                     fill="#3AB67D", font=("Inter SemiBoldItalic", 16 * -1))
+                     fill="#000000", font=("Inter SemiBoldItalic", 16 * -1))
     canvas.create_text(171.0, y, anchor="nw", text="", tags=f"suitability_{i}",
-                     fill="#848484", font=("Inter SemiBoldItalic", 16 * -1))
+                     fill="#000000", font=("Inter SemiBoldItalic", 16 * -1))
     canvas.create_text(376.0, y, anchor="nw", text="", tags=f"cost_{i}",
-                     fill="#848484", font=("Inter SemiBoldItalic", 16 * -1))
+                     fill="#000000", font=("Inter SemiBoldItalic", 16 * -1))
     canvas.create_text(530.0, y, anchor="nw", text="", tags=f"match_{i}",
-                     fill="#848484", font=("Inter SemiBoldItalic", 16 * -1))
+                     fill="#000000", font=("Inter SemiBoldItalic", 16 * -1))
 
 # Recommendation method selection
 canvas.create_text(
     630.0, 7.0,
     anchor="nw",
     text="Choose Recommendation Method",
-    fill="#848484",
+    fill="#000000",
     font=("Inter SemiBoldItalic", 16 * -1),
 )
 
@@ -122,8 +123,8 @@ for method, (x, y, label) in methods.items():
         text="",
         variable=selected_method,
         value=method,
-        bg="#FFFFFF",
-        activebackground="#FFFFFF",
+        bg="#f5fef0",
+        activebackground="#f5fef0",
         highlightthickness=0,
     ).place(x=x, y=y)
     
@@ -131,7 +132,7 @@ for method, (x, y, label) in methods.items():
         x + 25, y,
         anchor="nw",
         text=label,
-        fill="#848484",
+        fill="#000000",
         font=("Inter SemiBoldItalic", 14 * -1),
     )
 
@@ -142,7 +143,11 @@ for i, y in enumerate([234, 276, 321, 364, 408, 451], start=1):
         image=button_image,
         borderwidth=0,
         highlightthickness=0,
-        command=lambda: subprocess.Popen([sys.executable, "./src/app/frontend/More.py"]),
+        command=lambda crop=best_crop: subprocess.Popen([
+            sys.executable,
+            "./src/app/frontend/More.py",
+            best_crop
+        ]),
     )
     button.image = button_image
     button.place(x=661.0, y=y, width=90.0, height=30.0)
@@ -193,6 +198,7 @@ def display_genetic_algorithm_results(input_data):
 
 def display_greedy_algorithm_results(input_data):
     """Display results from greedy algorithm with new folder structure"""
+    global best_crop
     try:
         # Define paths - all files now in backend folder
         backend_dir = os.path.join(project_root, "app", "backend")
@@ -234,6 +240,7 @@ def display_greedy_algorithm_results(input_data):
                 "best_crop_display",
                 text=f"{best_crop} ({best_match} match)"
             )
+            
         def classify_suitability(cost: float) -> str:
                if cost < 0.2:
                   return "Excellent"
@@ -315,5 +322,8 @@ if len(sys.argv) > 1:
     except json.JSONDecodeError:
         print("Invalid input data format")
 
+
+
 window.resizable(False, False)
 window.mainloop()
+
