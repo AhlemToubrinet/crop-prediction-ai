@@ -13,7 +13,7 @@ project_root = Path(__file__).parents[2]  # Adjust if needed
 sys.path.insert(0, str(project_root))
 
 # Now import using full package path
-from app.backend.algorithms import CropProblem,HeuristicCalculator,GeneralHeuristicBasedSearch,HeuristicCalculator, CropGeneticAlgorithm, cropNode 
+from app.backend.algorithms import CropProblem,HeuristicCalculator,GeneralHeuristicBasedSearch,HeuristicCalculator, CropGeneticAlgorithm,CropCSP, cropNode 
 
 # Path setup for assets
 OUTPUT_PATH = Path(__file__).parent
@@ -190,6 +190,58 @@ def display_genetic_algorithm_results(input_data):
                 
     except Exception as e:
         print(f"Error displaying results: {e}")
+def display_CSP_algorithm_results(input_data):
+    """Display results from CSP algorithm"""
+    try:
+        with open(project_root / "app" / "backend" / "crop_db.json") as f:
+            crop_db = json.load(f)
+        
+        initial_state = {
+            'soil': input_data['soil'],
+            'climate': input_data['climate'],
+            'environmental': input_data['environmental'],
+            'current_crop': None
+        }
+        
+        solver = CropCSP(crop_db,initial_state)
+        solver.set_parameter_tolerance('soil.ph', 0.02)  # Stricter pH tolerance
+        solver.set_tolerance(0.2)
+        all_options = solver.get_all_options(6)  # Get top 6 crops
+
+        # Display the best crop at the top
+        if all_options:
+            best_crop = all_options[0][0].capitalize()
+            best_match = f"{100 * ( 1 - all_options[0][1]) :.2f}%"
+            
+            canvas.itemconfig(
+                "best_crop_display",
+                text=f"{best_crop} ({best_match} match)"
+            )
+        
+        for i, (crop, score, passes, details) in enumerate(all_options, 0):
+            canvas.itemconfig(f"crop_{i}", text=crop.capitalize())
+            if score < 0.2:
+                status = "Excellent"
+            elif score < 0.4:
+                status = "Good"
+            elif score < 0.6:
+                status =  "Fair"
+            else:
+                status = "Poor"
+            canvas.itemconfig(f"suitability_{i}", text=status)
+            canvas.itemconfig(f"cost_{i}", text=f"{score:.4f}")
+            match_score = 100*(1 - score) if score < 1 else 0
+            canvas.itemconfig(f"match_{i}", text=f"{match_score:.2f}%")
+            
+            # Clear any remaining rows if we have fewer than 6 results
+            for j in range(len(all_options), 6):
+                canvas.itemconfig(f"crop_{j}", text="")
+                canvas.itemconfig(f"suitability_{j}", text="")
+                canvas.itemconfig(f"cost_{j}", text="")
+                canvas.itemconfig(f"match_{j}", text="")
+                
+    except Exception as e:
+        print(f"Error displaying results: {e}")
 
 def display_greedy_algorithm_results(input_data):
     """Display results from greedy algorithm with new folder structure"""
@@ -270,6 +322,7 @@ def display_greedy_algorithm_results(input_data):
             canvas.itemconfig(f"suitability_{i}", text="Error")
             canvas.itemconfig(f"cost_{i}", text="")
             canvas.itemconfig(f"match_{i}", text="")
+    
 
 def on_method_change(*args):
     """Handle method selection change"""
