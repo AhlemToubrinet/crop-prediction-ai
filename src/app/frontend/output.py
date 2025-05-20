@@ -322,7 +322,8 @@ def display_greedy_algorithm_results(input_data):
             canvas.itemconfig(f"suitability_{i}", text="Error")
             canvas.itemconfig(f"cost_{i}", text="")
             canvas.itemconfig(f"match_{i}", text="")
-    
+
+
 
 def on_method_change(*args):
     """Handle method selection change"""
@@ -336,6 +337,7 @@ def on_method_change(*args):
             display_greedy_algorithm_results(input_data)
         elif method == "CSP":
             display_CSP_algorithm_results(input_data)
+        
         # Add other method handlers here as needed
 
 # Connect the method change handler
@@ -367,6 +369,9 @@ if len(sys.argv) > 1:
             display_genetic_algorithm_results(input_data)
         elif selected_method.get() == "Greedy":
             display_greedy_algorithm_results(input_data)
+        elif selected_method.get() == "CSP":
+            display_CSP_algorithm_results(input_data)
+        
     except json.JSONDecodeError:
         print("Invalid input data format")
 
