@@ -363,7 +363,30 @@ button_7 = Button(
     command=switch_to_input,
 )
 button_7.image = button_image_7
-button_7.place(x=699.0, y=530.0, width=171.0, height=48.0)
+button_7.place(x=709.0, y=528.0, width=171.0, height=48.0)
+
+
+def switch_to_dashboard():
+    window.destroy()
+    subprocess.Popen(
+        [
+            sys.executable,
+            "./src/app/frontend/dashbo.py",
+        ]
+    )
+
+
+button_image_8 = PhotoImage(file=relative_to_assets("8.png"))
+
+button_8 = Button(
+    image=button_image_8,
+    borderwidth=0,
+    highlightthickness=0,
+    command=switch_to_dashboard,
+)
+
+button_8.image = button_image_8  # Prevent garbage collection
+button_8.place(x=536.0, y=528.0, width=171.0, height=48.0)
 
 # Initialization --------------------------------------------------------------
 
