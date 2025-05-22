@@ -5,6 +5,7 @@ import subprocess
 import sys
 import json
 import os
+from PIL import Image, ImageTk
 
 # Add project root to Python path (assuming output.py is in src/app/frontend/)
 project_root = Path(__file__).parents[2]  # Adjust if needed
@@ -442,30 +443,7 @@ button_7 = Button(
     command=switch_to_input,
 )
 button_7.image = button_image_7
-button_7.place(x=709.0, y=528.0, width=171.0, height=48.0)
-
-
-def switch_to_dashboard():
-    window.destroy()
-    subprocess.Popen(
-        [
-            sys.executable,
-            "./src/app/frontend/dashbo.py",
-        ]
-    )
-
-
-button_image_8 = PhotoImage(file=relative_to_assets("8.png"))
-
-button_8 = Button(
-    image=button_image_8,
-    borderwidth=0,
-    highlightthickness=0,
-    command=switch_to_dashboard,
-)
-
-button_8.image = button_image_8  # Prevent garbage collection
-button_8.place(x=536.0, y=528.0, width=171.0, height=48.0)
+button_7.place(x=699.0, y=530.0, width=171.0, height=48.0)
 
 # Initialization --------------------------------------------------------------
 
@@ -484,26 +462,74 @@ if len(sys.argv) > 1:
     except json.JSONDecodeError:
         print("Invalid input data format")
 
+# def switch_to_dashboard():
+#     window.destroy()
+#     subprocess.Popen(
+#         [
+#             sys.executable,
+#             "src/app/frontend/dashboard.py",
+#         ]
+#     )
+
+
+# button_image_8 = PhotoImage(file=relative_to_assets("8.png"))
+
+# button_8 = Button(
+#     image=button_image_8,
+#     borderwidth=0,
+#     highlightthickness=0,
+#     command=switch_to_dashboard,
+# )
+
+# button_8.image = button_image_8  # Prevent garbage collection
+# button_8.place(x=536.0, y=528.0, width=171.0, height=48.0)
+
 def switch_to_dashboard():
     window.destroy()
     subprocess.Popen(
         [
             sys.executable,
-            "src/app/frontend/dashboo.py",
+            "src/app/frontend/dashboard.py",
         ]
     )
 
+# Load and resize the image
+try:
+    # Load the original image
+    original_image = Image.open(relative_to_assets("8.png"))
+    
+    # Resize to desired button size (width=171, height=48)
+    resized_image = original_image.resize((171, 48), Image.Resampling.LANCZOS)
+    
+    # Convert to PhotoImage
+    button_image_8 = ImageTk.PhotoImage(resized_image)
+    
+except Exception as e:
+    print(f"Error loading image: {e}")
+    # Fallback: create button without image
+    button_image_8 = None
 
-button_image_8 = PhotoImage(file=relative_to_assets("8.png"))
+# Create button
+if button_image_8:
+    button_8 = Button(
+        image=button_image_8,
+        borderwidth=0,
+        highlightthickness=0,
+        command=switch_to_dashboard,
+    )
+    button_8.image = button_image_8  # Prevent garbage collection
+else:
+    # Fallback button with text
+    button_8 = Button(
+        text="Advanced Sitting",
+        borderwidth=0,
+        highlightthickness=0,
+        command=switch_to_dashboard,
+        bg='#82C959',
+        fg='white',
+        font=('Helvetica', 12, 'bold')
+    )
 
-button_8 = Button(
-    image=button_image_8,
-    borderwidth=0,
-    highlightthickness=0,
-    command=switch_to_dashboard,
-)
-
-button_8.image = button_image_8  # Prevent garbage collection
 button_8.place(x=536.0, y=528.0, width=171.0, height=48.0)
 
 
