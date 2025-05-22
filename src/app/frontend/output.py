@@ -6,14 +6,13 @@ import sys
 import json
 import os
 
-
-
 # Add project root to Python path (assuming output.py is in src/app/frontend/)
 project_root = Path(__file__).parents[2]  # Adjust if needed
 sys.path.insert(0, str(project_root))
 
 # Now import using full package path
 from app.backend.algorithms import CropProblem,HeuristicCalculator,GeneralHeuristicBasedSearch,HeuristicCalculator, CropGeneticAlgorithm,CropCSP, cropNode 
+
 
 # Path setup for assets
 OUTPUT_PATH = Path(__file__).parent
@@ -329,9 +328,85 @@ def display_greedy_algorithm_results(input_data):
             canvas.itemconfig(f"suitability_{i}", text="Error")
             canvas.itemconfig(f"cost_{i}", text="")
             canvas.itemconfig(f"match_{i}", text="")
+def display_a_star_algorithm_results(input_data):
+    """Display results from a_star algorithm with new folder structure"""
+    try:
+        # Define paths - all files now in backend folder
+        backend_dir = os.path.join(project_root, "app", "backend")
+        crop_db_path = os.path.join(backend_dir, "crop_db.json")
+        heuristics_path = os.path.join(backend_dir, "heuristics.txt")
+
+        # Initialize calculator with current state
+        initial_state = {
+            'soil': input_data['soil'],
+            'climate': input_data['climate'],
+            'environmental': input_data['environmental'],
+            'current_crop': None
+        }
+
+        calculator = HeuristicCalculator(
+            current_state=initial_state,
+            crop_db_path=crop_db_path
+        )
+
+        # Generate and save heuristics
+        calculator.run(heuristics_path)
+        
+        # Create problem and search instance
+        problem = CropProblem(initial_state, calculator.crop_db)
+        a = GeneralHeuristicBasedSearch(problem, calculator.heuristics, "a_star")
+        
+        # Get top recommendations
+        results = a.search(6)  # Returns list of OrderedNode objects
+        
+        if not results:
+            raise ValueError("No suitable crops found for current conditions")
+
+        # Display the best crop at the top
+        if results:
+            best_crop = results[0].node_name.capitalize()
+            best_score = results[0].heuristic_value
+            best_match = f"{100 * (1 - best_score):.2f}%"
+            canvas.itemconfig(
+                "best_crop_display",
+                text=f"{best_crop} ({best_match} match)"
+            )
+        def classify_suitability(cost: float) -> str:
+               if cost < 0.2:
+                  return "Excellent"
+               elif cost < 0.4:
+                   return "Good"
+               elif cost < 0.6:
+                    return "Fair"
+               else:
+                    return "Poor"
 
 
-
+   
+    
+        # Display all results
+        for i, (result, y_pos) in enumerate(zip(results, result_positions)):
+            canvas.itemconfig(f"crop_{i}", text=result.node_name.capitalize())
+            suitability = classify_suitability(result.heuristic_value)
+            canvas.itemconfig(f"suitability_{i}", text=suitability)
+            canvas.itemconfig(f"cost_{i}", text=f"{result.heuristic_value:.4f}")
+            canvas.itemconfig(f"match_{i}", text=f"{100 * (1 - result.heuristic_value):.2f}%")
+            
+        # Clear any remaining rows
+        for j in range(len(results), 6):
+            canvas.itemconfig(f"crop_{j}", text="")
+            canvas.itemconfig(f"suitability_{j}", text="")
+            canvas.itemconfig(f"cost_{j}", text="")
+            canvas.itemconfig(f"match_{j}", text="")
+            
+    except Exception as e:
+        print(f"Error displaying results: {e}")
+        canvas.itemconfig("best_crop_display", text="Calculation Error")
+        for i in range(6):
+            canvas.itemconfig(f"crop_{i}", text="")
+            canvas.itemconfig(f"suitability_{i}", text="Error")
+            canvas.itemconfig(f"cost_{i}", text="")
+            canvas.itemconfig(f"match_{i}", text="")
 def on_method_change(*args):
     """Handle method selection change"""
     if len(sys.argv) > 1:
@@ -344,8 +419,12 @@ def on_method_change(*args):
             display_greedy_algorithm_results(input_data)
         elif method == "CSP":
             display_CSP_algorithm_results(input_data)
+        elif method =="A*":
+            display_a_star_algorithm_results(input_data)
         
-        # Add other method handlers here as needed
+
+
+
 
 # Connect the method change handler
 selected_method.trace('w', on_method_change)
@@ -405,6 +484,27 @@ if len(sys.argv) > 1:
     except json.JSONDecodeError:
         print("Invalid input data format")
 
+def switch_to_dashboard():
+    window.destroy()
+    subprocess.Popen(
+        [
+            sys.executable,
+            "src/app/frontend/dashboo.py",
+        ]
+    )
+
+
+button_image_8 = PhotoImage(file=relative_to_assets("8.png"))
+
+button_8 = Button(
+    image=button_image_8,
+    borderwidth=0,
+    highlightthickness=0,
+    command=switch_to_dashboard,
+)
+
+button_8.image = button_image_8  # Prevent garbage collection
+button_8.place(x=536.0, y=528.0, width=171.0, height=48.0)
 
 
 window.resizable(False, False)
