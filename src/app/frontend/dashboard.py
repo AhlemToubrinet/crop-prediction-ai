@@ -91,15 +91,17 @@ class AlgorithmDashboard:
         self.original_images = []
         
         for i, frame in enumerate(self.image_frames):
+            # Make graph3 (index 0) smaller than the others
+          
+
             try:
                 # Load original image (keep reference)
                 img = Image.open(image_paths[i])
                 self.original_images.append(img)
-                
                 # Create resized version for display
-                display_img = img.resize((500, 290), Image.LANCZOS)
+                display_img = img.resize((500, 265), Image.LANCZOS)
                 photo = ImageTk.PhotoImage(display_img)
-                
+
                 # Create label for image
                 img_label = tk.Label(frame, image=photo, bg='white')
                 img_label.image = photo  # Keep reference
