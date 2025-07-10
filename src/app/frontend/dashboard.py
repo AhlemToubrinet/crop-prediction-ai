@@ -3,15 +3,13 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import os
 
-
-
 class AlgorithmDashboard:
     def __init__(self, root):
         self.root = root
         self.root.title("Algorithm Comparison Dashboard")
         
         # Configure main window
-        self.root.geometry("1024x768")
+        self.root.geometry("1200x800")
         self.root.configure(bg='#f0f0f0')
         
         # Create header
@@ -93,20 +91,25 @@ class AlgorithmDashboard:
         self.original_images = []
         
         for i, frame in enumerate(self.image_frames):
+            # Make graph3 (index 0) smaller than the others
+          
+
             try:
                 # Load original image (keep reference)
                 img = Image.open(image_paths[i])
                 self.original_images.append(img)
-                
                 # Create resized version for display
-                display_img = img.resize((500, 200), Image.LANCZOS)
+                display_img = img.resize((500, 265), Image.LANCZOS)
                 photo = ImageTk.PhotoImage(display_img)
-                
+
                 # Create label for image
                 img_label = tk.Label(frame, image=photo, bg='white')
                 img_label.image = photo  # Keep reference
                 img_label.pack(fill='both', expand=True)
                 
+                # Bind hover events
+                img_label.bind("<Enter>", lambda e, idx=i: self.show_zoom(idx))
+                img_label.bind("<Leave>", lambda e: self.hide_zoom())
                 
             except FileNotFoundError:
                 # Create placeholder if image not found
