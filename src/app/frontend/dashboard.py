@@ -3,13 +3,15 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import os
 
+
+
 class AlgorithmDashboard:
     def __init__(self, root):
         self.root = root
         self.root.title("Algorithm Comparison Dashboard")
         
         # Configure main window
-        self.root.geometry("1200x800")
+        self.root.geometry("1024x768")
         self.root.configure(bg='#f0f0f0')
         
         # Create header
@@ -81,10 +83,10 @@ class AlgorithmDashboard:
     def load_images(self):
         # Replace these with your actual image paths
         image_paths = [
-            "src/app/frontend/assets/frame3/graph3.jpg",
-            "src/app/frontend/assets/frame3/graph1.jpg",
-            "src/app/frontend/assets/frame3/graph4.jpg",
-            "src/app/frontend/assets/frame3/graph2.jpg"
+            "src/app/frontend/assets/dashboard/graph3.jpg",
+            "src/app/frontend/assets/dashboard/graph1.jpg",
+            "src/app/frontend/assets/dashboard/graph4.jpg",
+            "src/app/frontend/assets/dashboard/graph2.jpg"
         ]
         
         # Store original images for zooming
@@ -97,7 +99,7 @@ class AlgorithmDashboard:
                 self.original_images.append(img)
                 
                 # Create resized version for display
-                display_img = img.resize((500, 290), Image.LANCZOS)
+                display_img = img.resize((500, 200), Image.LANCZOS)
                 photo = ImageTk.PhotoImage(display_img)
                 
                 # Create label for image
@@ -105,9 +107,6 @@ class AlgorithmDashboard:
                 img_label.image = photo  # Keep reference
                 img_label.pack(fill='both', expand=True)
                 
-                # Bind hover events
-                img_label.bind("<Enter>", lambda e, idx=i: self.show_zoom(idx))
-                img_label.bind("<Leave>", lambda e: self.hide_zoom())
                 
             except FileNotFoundError:
                 # Create placeholder if image not found

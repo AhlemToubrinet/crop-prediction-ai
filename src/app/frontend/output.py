@@ -17,7 +17,7 @@ from app.backend.algorithms import CropProblem,HeuristicCalculator,GeneralHeuris
 
 # Path setup for assets
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"./assets/frame0")
+ASSETS_PATH = OUTPUT_PATH / Path(r"./assets/output")
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
@@ -25,18 +25,20 @@ def relative_to_assets(path: str) -> Path:
 # Main window setup
 best_crop = ""
 window = Tk()
-window.geometry("900x590")
+window.geometry("1122x630")
+window.resizable(False, False)
 window.configure(bg="#f5fef0")
-
 canvas = Canvas(
     window,
     bg="#f5fef0",
-    height=590,
-    width=900,
+    height=630,
+    width=1122,
     bd=0,
     highlightthickness=0,
     relief="ridge",
 )
+
+
 canvas.place(x=0, y=0)
 
 # GUI Elements ----------------------------------------------------------------
@@ -46,7 +48,7 @@ canvas.create_text(
     16.0, 20.0,
     anchor="nw",
     text="📊 Your Crop Recommendations",
-    fill="#82c959",
+    fill="#0C4E0B",
     font=("Inter SemiBoldItalic", 26 * -1),
 )
 canvas.create_text(
@@ -138,7 +140,7 @@ for method, (x, y, label) in methods.items():
 
 # Buttons
 for i, y in enumerate([234, 276, 321, 364, 408, 451], start=1):
-    button_image = PhotoImage(file=relative_to_assets(f"button_{i}.png"))
+    button_image = PhotoImage(file=relative_to_assets("button.png"))
     button = Button(
         image=button_image,
         borderwidth=0,
@@ -435,7 +437,7 @@ def switch_to_input():
     window.destroy()
     subprocess.Popen([sys.executable, "./src/app/frontend/input.py"])
 
-button_image_7 = PhotoImage(file=relative_to_assets("button_7.png"))
+button_image_7 = PhotoImage(file=relative_to_assets("button_1.png"))
 button_7 = Button(
     image=button_image_7,
     borderwidth=0,
@@ -443,10 +445,9 @@ button_7 = Button(
     command=switch_to_input,
 )
 button_7.image = button_image_7
-button_7.place(x=699.0, y=530.0, width=171.0, height=48.0)
+button_7.place(x=900.0, y=555.0, width=160, height=50)
 
-# Initialization --------------------------------------------------------------
-
+# Initialization -------------------------------
 # Display results if data was passed and Genetic is selected
 if len(sys.argv) > 1:
     try:
@@ -496,7 +497,7 @@ def switch_to_dashboard():
 # Load and resize the image
 try:
     # Load the original image
-    original_image = Image.open(relative_to_assets("8.png"))
+    original_image = Image.open(relative_to_assets("button_2.png"))
     
     # Resize to desired button size (width=171, height=48)
     resized_image = original_image.resize((171, 48), Image.Resampling.LANCZOS)
@@ -530,7 +531,7 @@ else:
         font=('Helvetica', 12, 'bold')
     )
 
-button_8.place(x=536.0, y=528.0, width=171.0, height=48.0)
+button_8.place(x=720, y=555.0, width=170, height=50)
 
 
 window.resizable(False, False)
