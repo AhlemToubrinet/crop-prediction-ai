@@ -1,6 +1,6 @@
 # AI-Powered Crop Recommendation System 🌱
 
-![App Screenshot](./assets/screenshots/app_demo.png)
+![App Screenshot](src/app/frontend/assets/screenshots/app_demo.png)
 
 ## Overview
 An intelligent desktop application that recommends optimal crops based on environmental and soil conditions using advanced search algorithms (Genetic, A*, Greedy, CSP). Designed to help farmers make data-driven decisions for improved agricultural productivity.
@@ -46,7 +46,4 @@ An intelligent desktop application that recommends optimal crops based on enviro
 4. **Run the application**:
    ```bash
    # Start with input form:
-    python src/app/frontend/input.py
-
-    # Alternatively run directly (if you have test data):
-    python src/app/frontend/output.py
+    python src/app/frontend/home.py
