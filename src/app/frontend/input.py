@@ -4,6 +4,7 @@
 
 from pathlib import Path
 import json
+from tkinter import messagebox
 
 # from tkinter import *
 # Explicit imports to satisfy Flake8
@@ -251,12 +252,23 @@ button2_img = canvas.create_image(720.0, 555.0, anchor="nw", image=button_image_
 
 def on_button1_click(event):
     input_data = collect_inputs()
-    window.destroy()
-    subprocess.Popen([sys.executable, "./src/app/frontend/output.py", json.dumps(input_data)])
+    if input_data:  
+        window.destroy()
+        subprocess.Popen([sys.executable, "./src/app/frontend/output.py", json.dumps(input_data)])
 
 def on_button2_click(event):
-    window.destroy()
-    subprocess.Popen([sys.executable, "./src/app/frontend/input.py"])
+    """Reset all input fields to empty"""
+    entries = [
+        entry_1, entry_2, entry_3, entry_4, entry_5,
+        entry_6, entry_7, entry_8, entry_9, entry_10,
+        entry_11, entry_12, entry_13, entry_14
+    ]
+    
+    for entry in entries:
+        entry.delete(0, 'end')  # Clear the entry field
+    
+    # Optional: Set focus to first field for better UX
+    entry_1.focus_set()
 
 # Bind click events and cursor changes
 canvas.tag_bind(button1_img, "<Button-1>", on_button1_click)
@@ -277,29 +289,53 @@ canvas.tag_bind(button2_img, "<Leave>", on_leave)
 
 
 def collect_inputs():
-    """Collect all input values from the form"""
-    return {
-        'soil': {
-            'n': float(entry_1.get()),
-            'p': float(entry_4.get()),
-            'k': float(entry_2.get()),
-            'ph': float(entry_5.get()),
-            'organic_matter': float(entry_14.get()),
-            'soil_moisture': float(entry_3.get())
-        },
-        'climate': {
-            'temperature': float(entry_6.get()),
-            'humidity': float(entry_12.get()),
-            'rainfall': float(entry_11.get()),
-            'sunlight_exposure': float(entry_13.get())
-        },
-        'environmental': {
-            'irrigation_frequency': float(entry_7.get()),
-            'water_usage_efficiency': float(entry_9.get()),
-            'fertilizer_usage': float(entry_8.get()),
-            'pest_pressure': float(entry_10.get())
+    """Collect all input values from the form with validation"""
+    entries = [
+        entry_1, entry_2, entry_3, entry_4, entry_5,
+        entry_6, entry_7, entry_8, entry_9, entry_10,
+        entry_11, entry_12, entry_13, entry_14
+    ]
+    
+    # Check if any field is empty
+    for entry in entries:
+        if not entry.get().strip():
+            messagebox.showerror(
+                "Missing Data",
+                "Please fill in all fields before getting recommendations!",
+                parent=window
+            )
+            return None  # Return None if validation fails
+    
+    try:
+        return {
+            'soil': {
+                'n': float(entry_1.get()),
+                'p': float(entry_2.get()),
+                'k': float(entry_3.get()),
+                'ph': float(entry_5.get()),
+                'organic_matter': float(entry_14.get()),
+                'soil_moisture': float(entry_4.get())
+            },
+            'climate': {
+                'temperature': float(entry_6.get()),
+                'humidity': float(entry_12.get()),
+                'rainfall': float(entry_11.get()),
+                'sunlight_exposure': float(entry_13.get())
+            },
+            'environmental': {
+                'irrigation_frequency': float(entry_7.get()),
+                'water_usage_efficiency': float(entry_9.get()),
+                'fertilizer_usage': float(entry_8.get()),
+                'pest_pressure': float(entry_10.get())
+            }
         }
-    }
+    except ValueError:
+        messagebox.showerror(
+            "Invalid Data",
+            "Please enter valid numbers in all fields!",
+            parent=window
+        )
+        return None
 
 
 window.resizable(False, False)
