@@ -95,7 +95,7 @@ entry_4 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
 entry_4.place(x=847, y=108, width=160.0, height=15)
 
 canvas.create_text(
-    847, 70.0, anchor="nw", text="Soil Moisture (%)", fill="#000000", font=("Inter", 12 * -1),
+    847, 70.0, anchor="nw", text="pH Level", fill="#000000", font=("Inter", 12 * -1),
 )
 
 # second line
@@ -106,16 +106,16 @@ entry_5 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
 entry_5.place(x=40.0, y=193, width=157.0, height=15)
 
 canvas.create_text(
-    41, 151.5, anchor="nw", text="pH Level", fill="#000000", font=("Inter", 12 * -1)
+    41, 151.5, anchor="nw", text="organic matter(%)", fill="#000000", font=("Inter", 12 * -1)
 )
 
-entry_image_14 = PhotoImage(file=relative_to_assets("entry.png"))
-entry_bg_14 = canvas.create_image(387.5, 200, image=entry_image_14)
-entry_14 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
-entry_14.place(x=309, y=193, width=157.0, height=15)
+entry_image_6 = PhotoImage(file=relative_to_assets("entry.png"))
+entry_bg_6 = canvas.create_image(387.5, 200, image=entry_image_6)
+entry_6 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+entry_6.place(x=309, y=193, width=157.0, height=15)
 
 canvas.create_text(
-    309, 151.5, anchor="nw", text="organic matter(%)", fill="#000000", font=("Inter", 12 * -1),
+    309, 151.5, anchor="nw", text="Soil Moisture (%)", fill="#000000", font=("Inter", 12 * -1),
 )
 
 # ---------------------------------
@@ -142,28 +142,28 @@ canvas.create_text(
     40, 288.0, anchor="nw", text="temperature (C)", fill="#000000", font=("Inter", 12 * -1),
 )
 
-entry_image_10 = PhotoImage(file=relative_to_assets("entry.png"))
-entry_bg_10 = canvas.create_image(387.5, 336.5, image=entry_image_10)
-entry_10 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
-entry_10.place(x=309, y=329.5, width=157.0, height=15)
+entry_image_8 = PhotoImage(file=relative_to_assets("entry.png"))
+entry_bg_8 = canvas.create_image(387.5, 336.5, image=entry_image_8)
+entry_8 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+entry_8.place(x=309, y=329.5, width=157.0, height=15)
 
 canvas.create_text(
     309, 288.0, anchor="nw", text="humidity (%)", fill="#000000", font=("Inter", 12 * -1),
 )
 
-entry_image_8 = PhotoImage(file=relative_to_assets("entry.png"))
-entry_bg_8 = canvas.create_image(656.5, 336.5, image=entry_image_8)
-entry_8 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
-entry_8.place(x=578, y=329.5, width=157.0, height=15)
+entry_image_9 = PhotoImage(file=relative_to_assets("entry.png"))
+entry_bg_9 = canvas.create_image(656.5, 336.5, image=entry_image_9)
+entry_9 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+entry_9.place(x=578, y=329.5, width=157.0, height=15)
 
 canvas.create_text(
     578, 288.0, anchor="nw", text="rainfall (mm/mo)", fill="#000000", font=("Inter", 12 * -1),
 )
 
-entry_image_9 = PhotoImage(file=relative_to_assets("entry.png"))
-entry_bg_9 = canvas.create_image(925.5, 336.5, image=entry_image_9)
-entry_9 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
-entry_9.place(x=847, y=329.5, width=157.0, height=15)
+entry_image_10 = PhotoImage(file=relative_to_assets("entry.png"))
+entry_bg_10 = canvas.create_image(925.5, 336.5, image=entry_image_9)
+entry_10 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+entry_10.place(x=847, y=329.5, width=157.0, height=15)
 
 canvas.create_text(
     847, 288.0, anchor="nw", text="sunlight exposure(h/day)", fill="#000000", font=("Inter", 12 * -1),
@@ -183,10 +183,10 @@ canvas.create_text(
 )
 
 # fourth line
-entry_image_6 = PhotoImage(file=relative_to_assets("entry.png"))
-entry_bg_6 = canvas.create_image(118.5, 475.5, image=entry_image_6)
-entry_6 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
-entry_6.place(x=40.0, y=468.5, width=157.0, height=15)
+entry_image_11 = PhotoImage(file=relative_to_assets("entry.png"))
+entry_bg_11 = canvas.create_image(118.5, 475.5, image=entry_image_6)
+entry_11 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+entry_11.place(x=40.0, y=468.5, width=157.0, height=15)
 
 
 canvas.create_text(
@@ -199,10 +199,10 @@ canvas.create_text(
 )
 
 
-entry_image_11 = PhotoImage(file=relative_to_assets("entry.png"))
-entry_bg_11 = canvas.create_image(387.5, 475.5, image=entry_image_11)
-entry_11 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
-entry_11.place(x=309, y=468.5, width=157.0, height=15)
+entry_image_12 = PhotoImage(file=relative_to_assets("entry.png"))
+entry_bg_12 = canvas.create_image(387.5, 475.5, image=entry_image_11)
+entry_12 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+entry_12.place(x=309, y=468.5, width=157.0, height=15)
 
 canvas.create_text(
     309,
@@ -213,10 +213,10 @@ canvas.create_text(
     font=("Inter", 12 * -1),
 )
 
-entry_image_12 = PhotoImage(file=relative_to_assets("entry.png"))
-entry_bg_12 = canvas.create_image(656.5, 475.5, image=entry_image_12)
-entry_12 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
-entry_12.place(x=578, y=468.5, width=157.0, height=15)
+entry_image_13 = PhotoImage(file=relative_to_assets("entry.png"))
+entry_bg_13 = canvas.create_image(656.5, 475.5, image=entry_image_12)
+entry_13 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+entry_13.place(x=578, y=468.5, width=157.0, height=15)
 
 canvas.create_text(
     578,
@@ -227,10 +227,10 @@ canvas.create_text(
     font=("Inter", 12 * -1),
 )
 
-entry_image_13 = PhotoImage(file=relative_to_assets("entry.png"))
-entry_bg_13 = canvas.create_image(925.5, 475.5, image=entry_image_13)
-entry_13 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
-entry_13.place(x=847, y=468.5, width=157.0, height=15)
+entry_image_14 = PhotoImage(file=relative_to_assets("entry.png"))
+entry_bg_14 = canvas.create_image(925.5, 475.5, image=entry_image_13)
+entry_14 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+entry_14.place(x=847, y=468.5, width=157.0, height=15)
 
 canvas.create_text(
     847,
@@ -312,21 +312,21 @@ def collect_inputs():
                 'n': float(entry_1.get()),
                 'p': float(entry_2.get()),
                 'k': float(entry_3.get()),
-                'ph': float(entry_5.get()),
-                'organic_matter': float(entry_14.get()),
-                'soil_moisture': float(entry_4.get())
+                'ph': float(entry_4.get()),
+                'organic_matter': float(entry_5.get()),
+                'soil_moisture': float(entry_6.get())
             },
             'climate': {
-                'temperature': float(entry_6.get()),
-                'humidity': float(entry_12.get()),
-                'rainfall': float(entry_11.get()),
-                'sunlight_exposure': float(entry_13.get())
+                'temperature': float(entry_7.get()),
+                'humidity': float(entry_8.get()),
+                'rainfall': float(entry_9.get()),
+                'sunlight_exposure': float(entry_10.get())
             },
             'environmental': {
-                'irrigation_frequency': float(entry_7.get()),
-                'water_usage_efficiency': float(entry_9.get()),
-                'fertilizer_usage': float(entry_8.get()),
-                'pest_pressure': float(entry_10.get())
+                'irrigation_frequency': float(entry_11.get()),
+                'water_usage_efficiency': float(entry_12.get()),
+                'fertilizer_usage': float(entry_13.get()),
+                'pest_pressure': float(entry_14.get())
             }
         }
     except ValueError:
