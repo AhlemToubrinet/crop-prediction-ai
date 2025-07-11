@@ -6,10 +6,7 @@
 # ? the ID:  figd_4mc3X6wZDjmeYr0zCGO_Erc292iVbZuytK9ceIW0
 
 from pathlib import Path
-
-
 from tkinter import *
-# Explicit imports to satisfy Flake8
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
 import subprocess
 import sys
@@ -79,9 +76,8 @@ canvas.create_rectangle(
     fill="#FFFFFF",
     outline="",
 )
-### start Now
-button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
 
+button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
 
 def switch_to_input():
     window.destroy()  # Close current window

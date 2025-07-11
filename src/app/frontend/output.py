@@ -146,7 +146,7 @@ for i, y in enumerate([234, 276, 321, 364, 408, 451], start=1):
         command=lambda crop=best_crop: subprocess.Popen([
             sys.executable,
             "./src/app/frontend/More.py",
-            best_crop
+            best_crop,
         ]),
     )
     button.image = button_image
@@ -485,6 +485,7 @@ if len(sys.argv) > 1:
 # button_8.place(x=536.0, y=528.0, width=171.0, height=48.0)
 
 def switch_to_dashboard():
+    
     window.destroy()
     subprocess.Popen(
         [
