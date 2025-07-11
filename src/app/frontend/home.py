@@ -1,5 +1,7 @@
 from tkinter import Tk, Canvas, Button, PhotoImage
 from pathlib import Path
+from tkinter import *
+from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
 import subprocess
 import sys
 from functools import partial
@@ -33,7 +35,99 @@ def relative_to_assets(path: str) -> Path:
 
 
 window = Tk()
-window.geometry("1122x630")
+window.geometry("900x590")
+window.configure(bg="#FFFFFF")
+
+
+canvas = Canvas(
+    window,
+    bg="#FFFFFF",
+    height=590,
+    width=900,
+    bd=0,
+    highlightthickness=0,
+    relief="ridge",
+)
+
+canvas.place(x=0, y=0)
+image_image_1 = PhotoImage(file=relative_to_assets("image_1.png"))
+image_1 = canvas.create_image(450.0, 295.0, image=image_image_1)
+
+canvas.create_text(
+    116.0,
+    177.0,
+    anchor="nw",
+    text="crop recommdation system",
+    fill="#FFFFFF",
+    font=("Anton Regular", 60 * -1),
+)
+
+canvas.create_rectangle(
+    150.0,
+    271.99658203125,
+    748.013427734375,    273.99658203125,
+    fill="#FFFFFF",
+    outline="",
+)
+
+canvas.create_text(
+    123.0,
+    298.99658203125,
+    anchor="nw",
+    text="Optimize your farm’s productivity with science-backed crop choices.",
+    fill="#FFFFFF",
+    font=("Inter ExtraLightItalic", 20 * -1),
+)
+
+canvas.create_rectangle(
+    150.0,
+    345.99658203125,
+    748.013427734375,
+    347.99658203125,
+    fill="#FFFFFF",
+    outline="",
+)
+
+button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
+
+def switch_to_input():
+    window.destroy()  # Close current window
+    subprocess.Popen(
+        [
+            sys.executable,
+            "./src/app/frontend/input.py",
+        ]
+    )
+
+
+button_1 = Button(
+    image=button_image_1,
+    borderwidth=0,
+    highlightthickness=0,
+    command=switch_to_input,
+    relief="flat",
+)
+button_1.place(x=297.0, y=418.0, width=245.0, height=58.0)
+button_image_2 = PhotoImage(file=relative_to_assets("button_2.png"))
+
+
+def switch_to_LearnMore():
+    window.destroy()
+    subprocess.Popen(
+        [
+            sys.executable,
+            "./src/app/frontend/LearnMore.py",
+        ]
+    )
+
+
+button_2 = Button(
+    image=button_image_2,
+    borderwidth=0,
+    highlightthickness=0,
+    command=switch_to_LearnMore,
+)
+button_2.place(x=556.0, y=418.0, width=179.9647216796875, height=58.0)
 window.resizable(False, False)
 
 canvas = Canvas(window, bg="#ffffff", bd=0, highlightthickness=0, relief="ridge")
