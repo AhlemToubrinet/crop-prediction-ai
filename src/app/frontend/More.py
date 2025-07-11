@@ -6,7 +6,7 @@ import sys
 
 # --- Paths ---
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"./assets/frame3")
+ASSETS_PATH = OUTPUT_PATH / Path(r"./assets/More")
 
 
 

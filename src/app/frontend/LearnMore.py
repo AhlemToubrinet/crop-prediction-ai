@@ -3,120 +3,109 @@
 
 
 from pathlib import Path
-
-# from tkinter import *
-# Explicit imports to satisfy Flake8
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
+from tkinter import Tk, Canvas, PhotoImage
 import subprocess
 import sys
 
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(
-    r"./assets/frame4"
-)
-
+ASSETS_PATH = OUTPUT_PATH / Path(r"./assets/LearnMore")
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
-
 window = Tk()
-
-window.geometry("900x590")
+window.geometry("1122x630")
 window.configure(bg="#FFFFFF")
-
 
 canvas = Canvas(
     window,
     bg="#FFFFFF",
-    height=590,
-    width=900,
+    height=630,
+    width=1122,
     bd=0,
     highlightthickness=0,
     relief="ridge",
 )
-
 canvas.place(x=0, y=0)
+
+# [All your existing image and text elements...]
 image_image_1 = PhotoImage(file=relative_to_assets("image_1.png"))
-image_1 = canvas.create_image(700.0, 294.0, image=image_image_1)
+image_1 = canvas.create_image(780.0, 330.0, image=image_image_1)
 
 image_image_2 = PhotoImage(file=relative_to_assets("image_2.png"))
-image_2 = canvas.create_image(272.0, 295.0, image=image_image_2)
+image_2 = canvas.create_image(352.0, 330.0, image=image_image_2)
+
 
 canvas.create_text(
-    109.0,
-    304.0,
+    210.0,
+    160.0,
     anchor="nw",
-    text="for your land. With better decisions, you save time, conserve",
-    fill="#585656",
+    text="Boost your farm's potential with intelligent crop ",
+    fill="#000000",
     font=("Inter SemiBoldItalic", 17 * -1),
 )
-
 canvas.create_text(
-    109.0,
-    264.0,
-    anchor="nw",
-    text="AI-powered algorithms to suggest the most suitable crops ",
-    fill="#585656",
-    font=("Inter SemiBoldItalic", 17 * -1),
-)
-
-canvas.create_text(
-    109.0,
-    224.0,
-    anchor="nw",
-    text="Our system analyzes your soil and weather conditions using ",
-    fill="#585656",
-    font=("Inter SemiBoldItalic", 17 * -1),
-)
-
-canvas.create_text(
-    109.0,
-    184.0,
+    210.0,
+    200.0,
     anchor="nw",
     text="recommendations.",
-    fill="#585656",
+    fill="#000000",
     font=("Inter SemiBoldItalic", 17 * -1),
 )
-
 canvas.create_text(
-    109.0,
-    144.0,
+    210.0,
+    240.0,
     anchor="nw",
-    text="Boost your farm’s potential with intelligent crop ",
-    fill="#585656",
+    text="Our system analyzes your soil and weather conditions using ",
+    fill="#000000",
+    font=("Inter SemiBoldItalic", 17 * -1),
+)
+canvas.create_text(
+    210.0,
+    280.0,
+    anchor="nw",
+    text="AI-powered algorithms to suggest the most suitable crops ",
+    fill="#000000",
+    font=("Inter SemiBoldItalic", 17 * -1),
+)
+canvas.create_text(
+    210.0,
+    320.0,
+    anchor="nw",
+    text="for your land. With better decisions, you save time, conserve",
+    fill="#000000",
     font=("Inter SemiBoldItalic", 17 * -1),
 )
 
-button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
-
-
-def switch_to_input():
-    window.destroy()
-    subprocess.Popen(
-        [
-            sys.executable,
-            "./src/app/frontend/input.py",
-        ]
-    )
-
-
-button_1 = Button(
-    image=button_image_1,
-    borderwidth=0,
-    highlightthickness=0,
-    command=switch_to_input,
-)
-
-button_1.place(x=272.0, y=394.0, width=277.0, height=84.0)
-
 canvas.create_text(
-    109.0,
-    342.0,
+    210.0,
+    360.0,
     anchor="nw",
     text="conserve resources, and increase your yield.",
-    fill="#585656",
+    fill="#000000",
     font=("Inter SemiBoldItalic", 17 * -1),
 )
+
+# Replace button with clickable image
+button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
+button_img_item = canvas.create_image(272.0, 430, anchor="nw", image=button_image_1)
+
+def on_button_click(event):
+    window.destroy()
+    subprocess.Popen([sys.executable, "./src/app/frontend/input.py"])
+
+# Bind click event to the image
+canvas.tag_bind(button_img_item, "<Button-1>", on_button_click)
+
+# Change cursor to hand when hovering over the button image
+def on_enter(event):
+    window.config(cursor="hand2")
+
+def on_leave(event):
+    window.config(cursor="")
+
+canvas.tag_bind(button_img_item, "<Enter>", on_enter)
+canvas.tag_bind(button_img_item, "<Leave>", on_leave)
+
 window.resizable(False, False)
 window.mainloop()

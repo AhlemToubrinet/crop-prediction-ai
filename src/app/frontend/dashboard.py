@@ -81,10 +81,10 @@ class AlgorithmDashboard:
     def load_images(self):
         # Replace these with your actual image paths
         image_paths = [
-            "src/app/frontend/assets/frame3/graph3.jpg",
-            "src/app/frontend/assets/frame3/graph1.jpg",
-            "src/app/frontend/assets/frame3/graph4.jpg",
-            "src/app/frontend/assets/frame3/graph2.jpg"
+            "src/app/frontend/assets/dashboard/graph3.jpg",
+            "src/app/frontend/assets/dashboard/graph1.jpg",
+            "src/app/frontend/assets/dashboard/graph4.jpg",
+            "src/app/frontend/assets/dashboard/graph2.jpg"
         ]
         
         # Store original images for zooming
