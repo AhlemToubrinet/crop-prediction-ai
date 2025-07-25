@@ -5,7 +5,6 @@ import sys
 from functools import partial
 from tkinter import ttk
 
-# Helper functions for responsive design
 def scale_font(base_size, reference_width=1920):
     current_width = window.winfo_width()
     return max(int(base_size * (current_width / reference_width)), base_size//2)
@@ -23,15 +22,11 @@ def debounce(wait):
         return debounced
     return decorator
 
-# Path configuration
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path(r"./assets/home")
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
-
-
-
 window = Tk()
 window.geometry("1122x630")
 window.resizable(False, False)
@@ -39,7 +34,6 @@ window.resizable(False, False)
 canvas = Canvas(window, bg="#ffffff", bd=0, highlightthickness=0, relief="ridge")
 canvas.pack(fill="both", expand=True)
 
-# Load images
 try:
     bg_image = PhotoImage(file=relative_to_assets("bgImage.png"))
     button_img1 = PhotoImage(file=relative_to_assets("button_1.png"))

@@ -14,7 +14,7 @@ def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
 window = Tk()
-window.geometry("1122x630")
+window.geometry("1122x650")
 window.configure(bg="#FFFFFF")
 
 canvas = Canvas(
