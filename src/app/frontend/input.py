@@ -6,6 +6,10 @@ import subprocess
 import sys
 from PIL import Image, ImageTk
 
+# shared_data.py (or inside dashboard.py / main.py)
+shared_input = None
+
+
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path(r"./assets/input")
 
@@ -140,6 +144,7 @@ if __name__ == "__main__":
             messagebox.showerror("Invalid Data", "Please enter valid numbers!", parent=window)
             return None
 
+    
     def on_button1_click(event=None):
         input_data = collect_inputs()
         if input_data:

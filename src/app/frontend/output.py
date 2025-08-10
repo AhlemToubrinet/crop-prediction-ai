@@ -341,14 +341,22 @@ def BestRecUi(header_canvas, selected_method, image_refs, top_crops):
     reco_sub = tk.Label(reco_texts_frame, text=f"{match_score} match • {algo_name} Algorithm",font=("Segoe UI", 12), fg="#d4dfd2", bg="#246025")
     reco_sub.pack(anchor="w", pady=(2, 0))
 
+
+
 def go_to_dashboard():
-    root.destroy()
-    subprocess.Popen(
-        [
-            sys.executable,
-            "src/app/frontend/dashboard.py",
-        ]
-    )
+    #root.destroy()
+    initial_state = {
+            'soil': input_data['soil'],
+            'climate': input_data['climate'],
+            'environmental': input_data['environmental'],
+            'current_crop': None
+        }
+
+    subprocess.Popen([
+        sys.executable,
+        "./src/app/frontend/dashboard.py",
+        json.dumps(initial_state)
+    ])
 
 def go_back_to_inputs():
     

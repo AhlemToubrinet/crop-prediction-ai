@@ -15,6 +15,11 @@ import random
 import time
 import timeit
 import pandas as pd
+from pathlib import Path
+CURRENT_DIR = Path(__file__).parent.resolve()
+PROJECT_ROOT = Path(__file__).resolve().parents[3] 
+
+
 
 class cropNode:
     def __init__(self, state, parent=None, action=None, cost=0):
@@ -894,4 +899,607 @@ def print_recommendations(recommendations: List[Tuple[str, float, bool, Dict]]):
         
         problem_str = ", ".join(problems) if problems else "None"
         print(f"{rank:>2}. {crop.capitalize():<10} {match_percent:5.1f}%  {status:<6}  {problem_str}")
+
+
    
+ 
+ 
+### 1.  Ability to Find the Most Suitable Crop: 
+project_root = Path(__file__).parents[3]  
+crop_db_path = project_root / "data" / "processed" / "crop_db.txt"
+heuristics_path = project_root / 'src' / 'app' /'backend' / 'heuristics.txt'
+
+
+def load_crop_db(file_path):
+    """Load crop database from crop_db.txt"""
+    with open(file_path, 'r') as f:
+        # Read the file content and evaluate it as a Python dictionary
+        return eval(f.read())
+     
+
+
+
+class CropAlgorithmComparator:
+    def __init__(self, initial_state, top_n=5, weight_rank=0.4, weight_score=0.6):
+        self.project_root = Path(__file__).parents[3]
+        self.crop_db_path = self.project_root / "data" / "processed" / "crop_db.txt"
+        self.heuristics_path = self.project_root / 'src' / 'app' / 'backend' / 'heuristics.txt'
+        
+        self.initial_state = initial_state
+        self.top_n = top_n
+        self.weight_rank = weight_rank
+        self.weight_score = weight_score
+
+    def load_crop_db(self, file_path):
+        """Load crop database from file."""
+        with open(file_path, 'r') as f:
+            return eval(f.read())
+
+    def compare(self):
+        """Run the algorithm comparison."""
+        # Load crop database
+        crop_db = self.load_crop_db(self.crop_db_path)
+
+        # Reference: perfect cost calculation
+        problem = CropProblem(self.initial_state, crop_db)
+        reference_scores = {
+            crop: problem.calculate_cost(self.initial_state, crop)
+            for crop in problem.get_valid_actions(self.initial_state)
+        }
+        ref_ranks = {
+            crop: rank for rank, crop in enumerate(
+                sorted(reference_scores.keys(), key=lambda x: reference_scores[x])
+            )
+        }
+
+        # Load heuristics
+        calculator = HeuristicCalculator(self.initial_state, self.crop_db_path)
+        calculator.run(self.heuristics_path)
+        heuristics = self.load_crop_db(self.heuristics_path)
+
+        # Initialize algorithms
+        algorithms = {
+            'Greedy': GeneralHeuristicBasedSearch(problem, heuristics, "greedy"),
+            'A*': GeneralHeuristicBasedSearch(problem, heuristics, "a_star"),
+            'Genetic': CropGeneticAlgorithm(problem),
+            'CSP': CropCSP(crop_db, self.initial_state)
+        }
+
+        results = {}
+        print("\n=== Algorithm Comparison ===\n")
+        print(f"{'Algorithm':<10} {'Crop':<20} {'Predicted':<15} {'Reference':<15}  {'Score Diff':<15} {'Penalty':<10}")
+        print("-" * 90)
+
+        for algo_name, algorithm in algorithms.items():
+            if algo_name == 'Genetic':
+                predictions = [(r['crop'], r['cost']) for r in algorithm.get_top_n_crops(self.top_n)]
+            elif algo_name == 'CSP':
+                csp_results = algorithm.get_all_options(self.top_n)
+                predictions = [(crop, score) for crop, score, _, _ in csp_results]
+            else:
+                predictions = [(r.node_name, r.heuristic_value) for r in algorithm.search(self.top_n)]
+
+            total_penalty = 0
+            algo_results = []
+
+            for rank, (crop, pred_score) in enumerate(predictions):
+                ref_score = reference_scores.get(crop, 1)
+                ref_rank = ref_ranks.get(crop, self.top_n)
+                score_diff = abs(pred_score - ref_score)
+                rank_diff = abs(rank - ref_rank)
+
+                penalty = (self.weight_score * score_diff) + (self.weight_rank * (rank_diff / self.top_n))
+                total_penalty += penalty
+
+                algo_results.append({
+                    'crop': crop,
+                    'predicted': pred_score,
+                    'reference': ref_score,
+                    'score_diff': score_diff,
+                    'penalty': penalty
+                })
+
+                print(f"{algo_name:<10} {crop:<20} {pred_score:<15.4f} {ref_score:<15.4f}  {score_diff:<15.4f} {penalty:<10.4f}")
+
+            results[algo_name] = {
+                'predictions': algo_results,
+                'total_penalty': total_penalty,
+                'final_score': 1 / (1 + total_penalty)
+            }
+            print("-" * 90)
+
+        ranked_algorithms = sorted(results.items(), key=lambda x: x[1]['final_score'], reverse=True)
+
+        print("\n=== Final Results ===")
+        for algo, data in ranked_algorithms:
+            print(f"{algo}: Score = {data['final_score']:.4f}, Total Penalty = {data['total_penalty']:.4f}")
+
+        self._plot_results(ranked_algorithms)
+        
+
+        return {
+            'results': results,
+            'ranked_algorithms': ranked_algorithms,
+            'best_algorithm': ranked_algorithms[0][0]
+        }
+
+    def _plot_results(self, ranked_algorithms):
+        """Plot comparison results."""
+        plt.figure(figsize=(10, 6))
+        algorithms = [algo for algo, _ in ranked_algorithms]
+        scores = [data['final_score'] for _, data in ranked_algorithms]
+
+        bars = plt.bar(algorithms, scores, color=['#4CAF50', '#2196F3', '#FFC107', '#9C27B0'])
+        plt.title("Algorithm Comparison by Weighted Scoring")
+        plt.ylabel("Final Score (Higher is Better)")
+        plt.ylim(0, 1.1)
+
+        for bar in bars:
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width() / 2., height, f'{height:.4f}', ha='center', va='bottom')
+
+        plt.grid(axis='y', linestyle='--', alpha=0.6)
+        plt.tight_layout()
+        plt.show()
+   
+   
+
+### 2. Quality of Matches (Environmental Comparison):
+
+
+
+class EnvironmentalImpactEvaluator:
+    def __init__(self, problem):
+        self.problem = problem
+        self.environmental_factors = {
+            'water_usage_efficiency': 0.25,
+            'fertilizer_usage': 0.25,
+            'irrigation_frequency': 0.25,
+            'pest_pressure': 0.25
+        }
+    
+    def evaluate_algorithm(self, algorithm, conditions, top_n=1):
+        """Evaluate an algorithm's recommendations for environmental impact"""
+        crop_db = load_crop_db(crop_db_path)
+        heuristics = load_crop_db(heuristics_path)
+        problem = CropProblem(conditions, crop_db)
+        
+        recommendations = []
+        if algorithm == GeneralHeuristicBasedSearch:
+            search = GeneralHeuristicBasedSearch(problem, heuristics, "greedy")
+            recommendation = search.get_top_recommendations(top_n)
+            recommendations = [t[0] for t in recommendation]
+        elif algorithm == CropCSP:
+            csp = CropCSP(crop_db, conditions)
+            recommendation = csp.get_all_options(top_n)
+            recommendations = [t[0] for t in recommendation]
+        elif algorithm == CropGeneticAlgorithm:
+            ga = CropGeneticAlgorithm(problem)
+            recommendation = ga.get_top_n_crops(top_n)
+            recommendations = [item["crop"] for item in recommendation]
+        
+        return {
+            'algorithm': algorithm.__name__,
+            'conditions': conditions,
+            'recommendations': recommendations
+        } if recommendations else None
+    
+    def compare_algorithms(self, scenarios, crop_db, algorithms):
+        """Compare algorithms' environmental impact and generate visualization"""
+        parameters = list(self.environmental_factors.keys())
+        env_scores = {algo.__name__: {param: 0 for param in parameters} for algo in algorithms}
+        scenario_counts = {algo.__name__: 0 for algo in algorithms}
+        
+        for scenario in scenarios:
+            min_values = {param: None for param in parameters}
+            algo_recommendations = {}
+            
+            for algo in algorithms:
+                try:
+                    results = self.evaluate_algorithm(algo, scenario)
+                    if results and results['recommendations']:
+                        best_crop = results['recommendations'][0]
+                        scenario_counts[algo.__name__] += 1
+                        algo_recommendations[algo.__name__] = best_crop
+                        
+                        if best_crop in crop_db:
+                            for param in parameters:
+                                if param in crop_db[best_crop]['environmental']:
+                                    min_val = crop_db[best_crop]['environmental'][param][0]
+                                    if min_values[param] is None or min_val < min_values[param]:
+                                        min_values[param] = min_val
+                except Exception as e:
+                    print(f"Error in {algo.__name__}: {e}")
+                    continue
+            
+            for algo_name, best_crop in algo_recommendations.items():
+                if best_crop in crop_db:
+                    for param in parameters:
+                        if param in crop_db[best_crop]['environmental']:
+                            algo_min_val = crop_db[best_crop]['environmental'][param][0]
+                            if abs(algo_min_val - min_values[param]) < 1e-6:
+                                env_scores[algo_name][param] += 1
+        
+        comparison_df = pd.DataFrame.from_dict(env_scores, orient='index')
+        for algo_name in comparison_df.index:
+            if scenario_counts[algo_name] > 0:
+                comparison_df.loc[algo_name] = comparison_df.loc[algo_name] / scenario_counts[algo_name]
+        
+        self._plot_comparison(comparison_df, parameters)
+        self._print_results(comparison_df)
+        return comparison_df
+    
+    def _plot_comparison(self, df, parameters):
+        """Generate the comparison visualization"""
+        num_params = len(parameters)
+        cols = 2
+        rows = (num_params + cols - 1) // cols
+        
+        fig, axes = plt.subplots(rows, cols, figsize=(15, 5 * rows))
+        fig.suptitle('Frequency of Recommending Crops with Minimal Environmental Requirements', y=1.02)
+        axes = axes.flatten()
+        
+        for i, param in enumerate(parameters):
+            ax = axes[i]
+            bars = df[param].plot(kind='bar', ax=ax, color='skyblue')
+            ax.set_title(param)
+            ax.set_ylabel('Frequency of Minimal Recommendation')
+            ax.set_xlabel('Algorithm')
+            ax.set_ylim(0, 1)
+            
+            new_labels = {
+                'CropCSP': 'CSP',
+                'CropGeneticAlgorithm': 'Genetic',
+                'GeneralHeuristicBasedSearch': 'A* & Greedy'
+            }
+            current_labels = [label.get_text() for label in ax.get_xticklabels()]
+            updated_labels = [new_labels.get(name, name) for name in current_labels]
+            ax.set_xticklabels(updated_labels)
+            ax.tick_params(axis='x', rotation=45)
+            ax.grid(axis='y', linestyle='--', alpha=0.7)
+            
+            for bar in bars.patches:
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2., height,
+                        f'{height:.2f}',
+                        ha='center', va='bottom', fontsize=9)
+        
+        for j in range(i + 1, len(axes)):
+            axes[j].axis('off')
+        
+        plt.tight_layout()
+        plt.savefig('algorithm_minimal_environmental_recommendations.png')
+        plt.show()
+    
+    def _print_results(self, df):
+        """Print the comparison results in a table format"""
+        print("\nEnvironmental Comparison Table:\n")
+        print(tabulate(df, headers='keys', tablefmt='pretty', floatfmt=".3f"))
+    
+    @staticmethod
+    def generate_random_scenario():
+        """Generate random agricultural data with realistic ranges"""
+        return {
+            'soil': {
+                'n': round(random.uniform(10.0, 200.0), 1),
+                'p': round(random.uniform(5.0, 150.0), 1),
+                'k': round(random.uniform(20.0, 300.0), 1),
+                'ph': round(random.uniform(4.5, 8.5), 1),
+                'organic_matter': round(random.uniform(1.0, 10.0)),
+                'soil_moisture': round(random.uniform(5.0, 35.0)),
+            },
+            'climate': {
+                'temperature': round(random.uniform(10.0, 40.0), 1),
+                'humidity': round(random.uniform(30.0, 95.0)),
+                'rainfall': round(random.uniform(0.0, 50.0)),
+                'sunlight_exposure': round(random.uniform(4.0, 14.0)),
+            },
+            'environmental': {
+                'irrigation_frequency': random.uniform(1.0, 10.0),
+                'water_usage_efficiency': round(random.uniform(1.0, 10.0)),
+                'fertilizer_usage': round(random.uniform(5.0, 200.0)),
+                'pest_pressure': round(random.uniform(0.0, 100.0)),
+            },
+            'current_crop': None,
+            'growth_stage': None
+        }
+
+
+
+
+
+
+
+#### 3.1. Comparison in terms of Time Complexity:
+
+
+
+
+class TimeComplexityBenchmark:
+    
+    def __init__(self, problem, runs=3, warmup=1):
+        self.problem = problem
+        self.results = []
+        self.runs = runs  
+        self.warmup = warmup
+        self.crop_db = load_crop_db(str(crop_db_path))
+
+   
+
+    def _measure_algorithm(self, algorithm_name, **kwargs):
+        """Measure execution time over multiple runs"""
+        measurements = []
+        results = []
+        
+       
+        for _ in range(self.warmup):
+            if algorithm_name == 'genetic':
+                algo = CropGeneticAlgorithm(self.problem, **kwargs)
+                _ = algo.get_top_n_crops(5)
+            elif algorithm_name in ['a_star', 'greedy']:
+                calculator = HeuristicCalculator(
+                        current_state=self.problem.state,
+                        crop_db_path=str(crop_db_path)
+                        )
+                calculator.run(str(heuristics_path))
+                heuristics = load_crop_db(str(heuristics_path))
+
+                algo = GeneralHeuristicBasedSearch(self.problem, heuristics, algorithm_name)
+                _ = algo.search(5)
+            elif algorithm_name == 'csp':
+                algo = CropCSP(self.problem.crop_db, self.problem.state, **kwargs)
+                _ = algo.get_all_options(5)
+        
+        # Measurement phase
+        for _ in range(self.runs):
+            gc.collect()
+            
+            try:
+                start_time = timeit.default_timer()
+                
+                if algorithm_name == 'genetic':
+                    algo = CropGeneticAlgorithm(self.problem, **kwargs)
+                    result = algo.get_top_n_crops(5)
+                elif algorithm_name in ['a_star', 'greedy']:
+                    calculator = HeuristicCalculator(
+                        current_state=self.problem.state,
+                        crop_db_path=str(crop_db_path)
+                        )
+                    calculator.run(str(heuristics_path))
+                    heuristics = load_crop_db(str(heuristics_path))
+                    algo = GeneralHeuristicBasedSearch(self.problem, heuristics, algorithm_name)
+                    result = algo.search(5)
+                elif algorithm_name == 'csp':
+                    algo = CropCSP(self.problem.crop_db, self.problem.state, **kwargs)
+                    result = algo.get_all_options(5)
+                
+                elapsed = timeit.default_timer() - start_time
+                measurements.append(elapsed)
+                results.append(result)
+                
+            except Exception as e:
+                print(f"Error running {algorithm_name}: {str(e)}")
+                measurements.append(0)
+                results.append(None)
+        
+        # Store average measurements
+        avg_time_ms = mean(measurements) * 1000 if measurements else 0
+        
+        self.results.append({
+            'algorithm': algorithm_name.upper(),
+            'time_ms': avg_time_ms,
+            'result': results[0] if results else None,
+            'runs': self.runs
+        })
+        
+        return avg_time_ms
+
+    def generate_results_table(self):
+        """Generate formatted results table"""
+        table_data = []
+        headers = ["Algorithm", "Avg Time (ms)", "Result Count"]
+        
+        for result in sorted(self.results, key=lambda x: x['time_ms']):
+            table_data.append([
+                result['algorithm'],
+                f"{result['time_ms']:.2f}",
+                len(result['result']) if result['result'] else 0
+            ])
+        
+        return tabulate(table_data, headers=headers, tablefmt="grid")
+
+    def plot_time_comparison(self):
+        """Plot time usage comparison"""
+        algorithms = [r['algorithm'] for r in self.results]
+        times = [r['time_ms'] for r in self.results]
+        
+        plt.figure(figsize=(10, 6))
+        bars = plt.bar(algorithms, times, color=['#4C72B0', '#55A868', '#C44E52', '#8172B2'])
+        plt.title("Execution Time Comparison")
+        plt.xlabel("Algorithm")
+        plt.ylabel("Time (milliseconds)")
+        
+        # Add value labels
+        for bar in bars:
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.2f} ms',
+                    ha='center', va='bottom')
+        
+        plt.grid(True, axis='y')
+        plt.tight_layout()
+        plt.savefig("execution_time_comparison.png")
+        plt.show()
+
+    def analyze(self):
+        """Run complete analysis"""
+        print("\n=== RUNNING TIME COMPLEXITY BENCHMARKS ===")
+        self.run_benchmarks()
+        
+        print("\n=== EXECUTION TIME RESULTS ===")
+        print(self.generate_results_table())
+        
+        print("\nGenerating time comparison graph...")
+        self.plot_time_comparison()
+
+    def run_benchmarks(self):
+        """Run all algorithms and collect time metrics"""
+        algorithms = ['genetic', 'a_star', 'greedy', 'csp']
+        
+        for name in algorithms:
+            print(f"Running {name} algorithm...")
+            try:
+                self._measure_algorithm(name)
+            except Exception as e:
+                print(f"Error running {name}: {str(e)}")
+                self.results.append({
+                    'algorithm': name.upper(),
+                    'time_ms': 0,
+                    'result': None,
+                    'runs': self.runs
+     
+                })
+               
+
+### 3.2. Comparison In Terms Of Space Complexity:
+
+
+class SpaceComplexityBenchmark:
+    def __init__(self, problem, runs=3):
+        self.problem = problem
+        self.results = []
+        self.runs = runs  # Store runs as instance variab le
+        self.crop_db = load_crop_db(str(crop_db_path))
+
+    def _measure_algorithm(self, algorithm_name, **kwargs):
+        """Measure average peak memory usage over multiple runs"""
+        """Peak Memory refers to the maximum amount of RAM (memory) consumed by an algorithm 
+        while it is executing. It represents the highest point of memory usage during 
+        the program's runtime."""
+        measurements = []
+        result_sizes = []
+        results = []
+        
+        for _ in range(self.runs):
+            # Clean up before measurement
+            gc.collect()
+            
+            tracemalloc.start()
+            
+            try:
+                if algorithm_name == 'genetic':
+                    algo = CropGeneticAlgorithm(self.problem, **kwargs)
+                    result = algo.get_top_n_crops(5)
+                elif algorithm_name in ['a_star', 'greedy']:
+                  crop_db_path = PROJECT_ROOT / 'data' / 'processed' / 'crop_db.txt'
+                  heuristics_path = PROJECT_ROOT / 'src' / 'app' /'backend' / 'heuristics.txt'
+  
+                  calculator = HeuristicCalculator(
+                     current_state=self.problem.state,
+                     crop_db_path=str(crop_db_path)
+                           )
+                  calculator.run(str(heuristics_path))
+                  heuristics = load_crop_db(str(heuristics_path))
+                  algo = GeneralHeuristicBasedSearch(self.problem, heuristics, algorithm_name)
+                  result = algo.search(5)
+                elif algorithm_name == 'csp':
+                    algo = CropCSP(self.problem.crop_db, self.problem.state, **kwargs)
+                    result = algo.get_all_options(5)
+                
+                # Get memory stats
+                current, peak = tracemalloc.get_traced_memory()
+                measurements.append(peak)
+                result_sizes.append(sys.getsizeof(result))
+                results.append(result)
+                
+            except Exception as e:
+                print(f"Error running {algorithm_name}: {str(e)}")
+                measurements.append(0)
+                result_sizes.append(0)
+                results.append(None)
+                
+            finally:
+                tracemalloc.stop()
+        
+        # Store average measurements
+        avg_peak_kb = mean(measurements) / 1024 if measurements else 0
+        avg_result_size = mean(result_sizes) if result_sizes else 0
+        
+        self.results.append({
+            'algorithm': algorithm_name.upper(),
+            'peak_memory_kb': avg_peak_kb,
+            'result_size': avg_result_size,
+            'result': results[0] if results else None,
+            'runs': self.runs  # Include runs count in results
+        })
+        
+        return avg_peak_kb
+
+    def generate_results_table(self):
+        """Generate formatted results table"""
+        table_data = []
+        headers = ["Algorithm", "Peak Memory (KB)", "Result Size (bytes)", "Result Count"]
+        
+        for result in sorted(self.results, key=lambda x: x['peak_memory_kb']):
+            table_data.append([
+                result['algorithm'],
+                f"{result['peak_memory_kb']:.2f}",
+                result['result_size'],
+                len(result['result']) if result['result'] else 0
+            ])
+        
+        return tabulate(table_data, headers=headers, tablefmt="grid")
+
+    def plot_memory_comparison(self):
+        """Plot memory usage comparison"""
+        algorithms = [r['algorithm'] for r in self.results]
+        memory = [r['peak_memory_kb'] for r in self.results]
+        
+        plt.figure(figsize=(10, 6))
+        bars = plt.bar(algorithms, memory, color=['#9A2802', '#FFDD6C', '#D6A99A', '#52F06F'])
+        plt.title("Actual Memory Usage Comparison")
+        plt.xlabel("Algorithm")
+        plt.ylabel("Peak Memory Usage (KB)")
+        
+        # Add value labels
+        for bar in bars:
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.2f} KB',
+                    ha='center', va='bottom')
+        
+        plt.grid(True, axis='y')
+        plt.tight_layout()
+        plt.savefig("actual_memory_usage.png")
+        plt.show()
+
+    def analyze(self):
+        """Run complete analysis"""
+        print("\n=== RUNNING MEMORY BENCHMARKS ===")
+        self.run_benchmarks()
+        
+        print("\n=== MEMORY USAGE RESULTS ===")
+        print(self.generate_results_table())
+        
+        print("\nGenerating memory comparison graph...")
+        self.plot_memory_comparison()
+
+    def run_benchmarks(self):
+        """Run all algorithms and collect memory metrics"""
+        algorithms = ['genetic', 'a_star', 'greedy', 'csp']
+        
+        for name in algorithms:
+            print(f"Running {name} algorithm...")
+            try:
+                self._measure_algorithm(name)
+            except Exception as e:
+                print(f"Error running {name}: {str(e)}")
+                self.results.append({
+                    'algorithm': name.upper(),
+                    'peak_memory_kb': 0,
+                    'result_size': 0,
+                    'result': None,
+                    'runs': self.runs
+                })
+
+
