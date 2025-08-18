@@ -1,310 +1,516 @@
-import tkinter as tk
-from tkinter import ttk
-from PIL import Image, ImageTk
 from pathlib import Path
-import sys
-import subprocess
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import json
+from tkinter import messagebox
+from tkinter import Tk, Canvas, Entry, PhotoImage
+import subprocess
+import sys
+from PIL import Image, ImageTk
 
-try:
-    if len(sys.argv) > 1:
-        initial_state = json.loads(sys.argv[1])
-        input_data = json.loads(sys.argv[1])
-    else:
-        initial_state = None
-        print(" No initial state received.")
-except json.JSONDecodeError as e:
-    print(" JSON Decode Error:", e)
-    initial_state = None
+# shared_data.py (or inside dashboard.py / main.py)
+shared_input = None
 
-# Relative path to dashboard assets
+
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"./assets/dashboard")
-
-project_root = Path(__file__).parents[2]  
-sys.path.insert(0, str(project_root))
-
-from app.backend.algorithms import (
-    CropProblem, 
-    SpaceComplexityBenchmark, 
-    TimeComplexityBenchmark, 
-    CropAlgorithmComparator, 
-    EnvironmentalImpactEvaluator,
-    GeneralHeuristicBasedSearch,
-    CropCSP,
-    CropGeneticAlgorithm
-)
+ASSETS_PATH = OUTPUT_PATH / Path(r"./assets/input")
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
-def create_rounded_rect(canvas, x1, y1, x2, y2, radius=25, **kwargs):
-    return canvas.create_polygon(
-        [x1+radius, y1, x2-radius, y1, x2, y1, x2, y1+radius,
-         x2, y2-radius, x2, y2, x2-radius, y2, x1+radius, y2,
-         x1, y2, x1, y2-radius, x1, y1+radius, x1, y1],
-        smooth=True, splinesteps=36, **kwargs
+if __name__ == "__main__":
+    window = Tk()
+    window.geometry("1122x650")
+    window.resizable(False, False)
+    window.configure(bg="#f5fef0")
+
+    canvas = Canvas(
+        window,
+        bg="#f5fef0",
+        height=630,
+        width=1122,
+        bd=0,
+        highlightthickness=0,
+        relief="ridge",
     )
-
-def go_back_to_output():
-    root.destroy()
-    subprocess.Popen([sys.executable, "./src/app/frontend/output.py", json.dumps(input_data)])
-
-def display_TimeComplexity_graph(initial_state, parent_frame):
+    canvas.place(x=0, y=0)
+    canvas.create_rectangle(0, 0, 1122, 80, fill="#0c4e0b", outline="")
+    
     try:
-        with open(project_root / "app" / "backend" / "crop_db.json") as f:
-            crop_db = json.load(f)
-    except Exception as e:
-        print(" Failed to load crop_db.json:", e)
-        return
+        pil_logo = Image.open(relative_to_assets("leaf.png")).resize((80, 80), Image.Resampling.LANCZOS)
+        logo_img = ImageTk.PhotoImage(pil_logo)
+        canvas.create_image(80, 40, anchor="center", image=logo_img)
+    except Exception:
+        pass
 
-    if initial_state is None:
-        print(" Error: No initial state provided.")
-        return
+    canvas.create_text(130, 26, anchor="w", text="Farm Data Input", fill="#ffffff", font=("Segoe UI", 18,"bold"))
+    canvas.create_text(130, 50, anchor="w", text="Fill in your farm’s soil/weather data.", fill="#e7f3e6", font=("Segoe UI", 10))
 
-    try:
-        problem = CropProblem(initial_state, crop_db)
-    except Exception as e:
-        print(" Failed to create CropProblem:", e)
-        return
+    def create_rounded_rect(canvas, x1, y1, x2, y2, radius=25, **kwargs):
+        points = [
+            x1 + radius, y1,
+            x2 - radius, y1,
+            x2, y1,
+            x2, y1 + radius,
+            x2, y2 - radius,
+            x2, y2,
+            x2 - radius, y2,
+            x1 + radius, y2,
+            x1, y2,
+            x1, y2 - radius,
+            x1, y1 + radius,
+            x1, y1
+        ]
+        return canvas.create_polygon(points, smooth=True, **kwargs)
 
-    benchmark = TimeComplexityBenchmark(problem)
-    benchmark.run_benchmarks()
+    create_rounded_rect(canvas, 50, 80, 1065, 650, radius=30, fill="#ffffff", outline="")
+    y_shift = 88
+    field_offset = 20  
+    sections = [
+        ("Soil Properties", [
+            ("Nitrogen (ppm)", 150, 70),
+            ("Phosphorus (ppm)", 370, 70),
+            ("Potassium (ppm)", 580, 70),
+            ("pH Level", 800, 70),
+            ("Organic Matter (%)", 150, 150),
+            ("Soil Moisture (%)", 370, 150),
+        ], 0),
+        ("Climate Conditions", [
+            ("Temperature (C)", 150, 290),
+            ("Humidity (%)", 370, 290),
+            ("Rainfall (mm/mo)", 580, 290),
+            ("Sunlight Exposure (h/day)", 800, 290),
+        ], 210),
+        ("Environmental Factors", [
+            ("Irrigation Frequency (x/week)", 150,420),
+            ("Water Usage Efficiency (1–5)", 370, 420),
+            ("Fertilizer Usage", 580, 420),
+            ("Pest Pressure (1–5)", 800, 420),
+        ], 340),
+    ]
 
-    fig = plt.figure(figsize=(10, 3), dpi=100)
-    algorithms = [r['algorithm'] for r in benchmark.results]
-    times = [r['time_ms'] for r in benchmark.results]
-
-    bars = plt.bar(algorithms, times, color=['#4C72B0', '#55A868', '#C44E52', '#8172B2'])
-    plt.title("Execution Time Comparison")
-    plt.xlabel("Algorithm")
-    plt.ylabel("Time (ms)")
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2., height,
-                f'{height:.2f}', ha='center', va='bottom', fontsize=9)
-    plt.grid(True, axis='y')
-    plt.tight_layout()
-
-    for widget in parent_frame.winfo_children():
-        widget.destroy()
-
-    fig_canvas = FigureCanvasTkAgg(fig, master=parent_frame)
-    fig_canvas.draw()
-    fig_canvas.get_tk_widget().pack(fill="x", expand=False)
-    parent_frame.update_idletasks()
-
-def display_SpaceComplexity_graph(initial_state, parent_frame):
-    try:
-        with open(project_root / "app" / "backend" / "crop_db.json") as f:
-            crop_db = json.load(f)
-    except Exception as e:
-        print(" Failed to load crop_db.json:", e)
-        return
-
-    if initial_state is None:
-        print(" Error: No initial state provided.")
-        return
-
-    try:
-        problem = CropProblem(initial_state, crop_db)
-    except Exception as e:
-        print(" Failed to create CropProblem:", e)
-        return
-
-    benchmark = SpaceComplexityBenchmark(problem)
-    benchmark.run_benchmarks()
-
-    fig = plt.figure(figsize=(10, 3), dpi=100)
-    algorithms = [r['algorithm'] for r in benchmark.results]
-    memory = [r['peak_memory_kb'] for r in benchmark.results]
-
-    bars = plt.bar(algorithms, memory, color=['#9A2802', '#FFDD6C', '#D6A99A', '#52F06F'])
-    plt.title("Memory Usage Comparison")
-    plt.xlabel("Algorithm")
-    plt.ylabel("Peak Memory (KB)")
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2., height,
-                f'{height:.2f}', ha='center', va='bottom', fontsize=9)
-    plt.grid(True, axis='y')
-    plt.tight_layout()
-
-    for widget in parent_frame.winfo_children():
-        widget.destroy()
-
-    fig_canvas = FigureCanvasTkAgg(fig, master=parent_frame)
-    fig_canvas.draw()
-    fig_canvas.get_tk_widget().pack(fill="x", expand=False)
-    parent_frame.update_idletasks()
-
-def display_AlgorithmComparator_graph(initial_state, parent_frame):
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-    if initial_state is None:
-        print(" Error: No initial state provided.")
-        return
+    entries = []
+    entry_size = (190, 46)
+    entry_img_path = relative_to_assets("entry.png")
 
     try:
-        for widget in parent_frame.winfo_children():
-            widget.destroy()
+        pil_entry = Image.open(entry_img_path).resize(entry_size, Image.Resampling.LANCZOS)
+        entry_img = ImageTk.PhotoImage(pil_entry)
+    except Exception:
+        entry_img = None
 
-        original_show = plt.show
-        plt.show = lambda *args, **kwargs: None
-
-        comparator = CropAlgorithmComparator(initial_state, top_n=5, weight_rank=0.4, weight_score=0.6)
-        comparator.compare()
-
-        plt.show = original_show
-        fig = plt.gcf()
-        fig.set_size_inches(10, 3)
-        fig.set_dpi(100)
-
-        fig_canvas = FigureCanvasTkAgg(fig, master=parent_frame)
-        fig_canvas.draw()
-        fig_canvas.get_tk_widget().pack(fill="x", expand=False)
-        parent_frame.update_idletasks()
-
-    except Exception as e:
-        print(" Failed to display Algorithm Comparator graph:", e)
-
-def display_EnvironmentalImpact_graph(initial_state, parent_frame):
+    for section_title, fields, section_title_y in sections:
+        canvas.create_text(135, section_title_y + y_shift, anchor="nw", text=section_title, fill="#0c4e0b", font=("Segoe UI", 18, "bold"))
+        for label, x, y in fields:
+            canvas.create_text(x-13, y - 33 + y_shift, anchor="nw", text=label, fill="#000000", font=("Segoe UI", 11))
+            if entry_img:
+                canvas.create_image(x + 78.5, y + 13 + y_shift, image=entry_img)
+            entry = Entry(bd=0, bg="#ffffff", fg="#000716", highlightthickness=0)
+            entry.place(x=x, y=y + y_shift, width=157.0, height=24)
+            entries.append(entry)
     try:
-        for widget in parent_frame.winfo_children():
-            widget.destroy()
+        button_image_1 = PhotoImage(file=relative_to_assets("button.png"))
+        button_image_2 = PhotoImage(file=relative_to_assets("reset.png"))
+        button1_img = canvas.create_image(735, 580, anchor="nw", image=button_image_1)
+        button2_img = canvas.create_image(595, 580, anchor="nw", image=button_image_2)
+    except Exception:
+        from tkinter import Button
+        button1 = Button(window, text="Get Recommendation", bg="#0c4e0b", fg="white", font=("Segoe UI", 12, "bold"))
+        button1.place(x=900, y=570, width=150, height=40)
+        button2 = Button(window, text="Reset", bg="#e0e0e0", fg="#0c4e0b", font=("Segoe UI", 12, "bold"))
+        button2.place(x=770, y=570, width=120, height=40)
+        button1_img = button2_img = None
 
-        with open(project_root / "app" / "backend" / "crop_db.json") as f:
-            crop_db = json.load(f)
-        
-        if initial_state is None:
-            raise ValueError("No initial state provided")
-            
-        problem = CropProblem(initial_state, crop_db)
-        evaluator = EnvironmentalImpactEvaluator(problem)
+    def collect_inputs():
+        try:
+            values = [e.get().strip() for e in entries]
+            if "" in values:
+                messagebox.showerror("Missing Data", "Please fill in all fields!", parent=window)
+                return None
+            float_values = list(map(float, values))
+            return {
+                'soil': {
+                    'n': float_values[0], 'p': float_values[1], 'k': float_values[2],
+                    'ph': float_values[3], 'organic_matter': float_values[4], 'soil_moisture': float_values[5]
+                },
+                'climate': {
+                    'temperature': float_values[6], 'humidity': float_values[7],
+                    'rainfall': float_values[8], 'sunlight_exposure': float_values[9]
+                },
+                'environmental': {
+                    'irrigation_frequency': float_values[10], 'water_usage_efficiency': float_values[11],
+                    'fertilizer_usage': float_values[12], 'pest_pressure': float_values[13]
+                }
+            }
+        except ValueError:
+            messagebox.showerror("Invalid Data", "Please enter valid numbers!", parent=window)
+            return None
 
-        import matplotlib.pyplot as plt
-        original_show = plt.show
-        plt.show = lambda *args, **kwargs: None
-        
-        scenarios = [evaluator.generate_random_scenario() for _ in range(20)]
-        algorithms = [GeneralHeuristicBasedSearch, CropCSP, CropGeneticAlgorithm]
-        comparison_df = evaluator.compare_algorithms(scenarios, crop_db, algorithms)
-        
-        fig, axes = plt.subplots(2, 2, figsize=(10, 6))
-        fig.suptitle('Algorithm Environmental Impact Comparison', y=1.05)
-        
-        parameters = {
-            'water_usage_efficiency': 'Water Efficiency',
-            'fertilizer_usage': 'Fertilizer Usage',
-            'irrigation_frequency': 'Irrigation Frequency',
-            'pest_pressure': 'Pest Pressure'
-        }
-        
-        for (param, title), ax in zip(parameters.items(), axes.flatten()):
-            data = comparison_df[param]
-            bars = ax.bar(
-                ['Heuristic', 'CSP', 'Genetic'],  # Set labels directly
-                data.values,
-                color=['#4C72B0', '#55A868', '#C44E52']
-            )
-            
-            ax.set_title(title)
-            ax.set_ylim(0, 1)
-            ax.grid(axis='y', linestyle='--', alpha=0.5)
-            
-            for bar in bars:
-                height = bar.get_height()
-                ax.text(bar.get_x() + bar.get_width()/2., height,
-                        f'{height:.2f}',
-                        ha='center', va='bottom')
-        
-        plt.tight_layout()
-        plt.show = original_show
+    
+    def on_button1_click(event=None):
+        input_data = collect_inputs()
+        if input_data:
+            window.destroy()
+            subprocess.Popen([sys.executable, "./src/app/frontend/output.py", json.dumps(input_data)])
 
-        fig_canvas = FigureCanvasTkAgg(fig, master=parent_frame)
-        fig_canvas.draw()
-        fig_canvas.get_tk_widget().pack(fill="x", expand=False)
-        parent_frame.update_idletasks()
-        
-    except Exception as e:
-        print(f"Error displaying environmental graph: {e}")
-        tk.Label(parent_frame, 
-                text=f"Graph Error: {str(e)}",
-                fg="red", bg="#f9fff7").pack()
+    def on_button2_click(event=None):
+        for entry in entries:
+            entry.delete(0, 'end')
+        entries[0].focus_set()
+
+    if 'button1_img' in locals() and 'button2_img' in locals() and button1_img and button2_img:
+        canvas.tag_bind(button1_img, "<Button-1>", on_button1_click)
+        canvas.tag_bind(button2_img, "<Button-1>", on_button2_click)
+        for btn in [button1_img, button2_img]:
+            canvas.tag_bind(btn, "<Enter>", lambda e: window.config(cursor="hand2"))
+            canvas.tag_bind(btn, "<Leave>", lambda e: window.config(cursor=""))
+    else:
+        button1.config(command=on_button1_click)
+        button2.config(command=on_button2_click)
+
+    window.mainloop()
+
+""" 
+# This file was generated by the Tkinter Designer by Parth Jadhav
+# https://github.com/ParthJadhav/Tkinter-Designer
+
+
+from pathlib import Path
+import json
+from tkinter import messagebox
+
+# from tkinter import *
+# Explicit imports to satisfy Flake8
+from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
+import subprocess
+import sys
+
+OUTPUT_PATH = Path(__file__).parent
+ASSETS_PATH = OUTPUT_PATH / Path(
+    r"./assets/input"
+)
+
+
+def relative_to_assets(path: str) -> Path:
+    return ASSETS_PATH / Path(path)
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    root.title("Crop Dashboard")
-    root.geometry("1122x630")
-    root.minsize(1122, 630)
-    root.configure(bg="#f9fff7")
-
-    image_refs = []
-
-    # Header Section
-    header = tk.Canvas(root, height=130, bg="#0c4e0b", highlightthickness=0)
-    header.pack(fill="x")
-
-    leaf_icon = Image.open(relative_to_assets("leaf.png")).resize((30, 30))
-    leaf_icon_tk = ImageTk.PhotoImage(leaf_icon)
-    image_refs.append(leaf_icon_tk)
-
-    header.create_image(40, 50, image=leaf_icon_tk)
-    header.create_text(80, 42, text="Crop Dashboard", anchor="w", font=("Segoe UI", 18, "bold"), fill="white")
-    header.create_text(80, 68, text="Real-time algorithms monitoring", anchor="w", font=("Segoe UI", 12), fill="#bbf7d0")
-
-    create_rounded_rect(header, 920, 35, 1090, 75, radius=15, fill="#3c703c", outline="")
-    back_text = header.create_text(1005, 55, text="← Back to Output", font=("Segoe UI", 11, "bold"), fill="white")
-    header.tag_bind(back_text, "<Button-1>", lambda e: go_back_to_output())
-
-    # Create main container
-    main_frame = tk.Frame(root, bg="#f9fff7")
-    main_frame.pack(fill="both", expand=True)
-
-    # Create canvas and scrollbar
-    main_canvas = tk.Canvas(main_frame, bg="#f9fff7", highlightthickness=0)
-    scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=main_canvas.yview)
     
-    main_canvas.configure(yscrollcommand=scrollbar.set)
-    scrollbar.pack(side="right", fill="y")
-    main_canvas.pack(side="left", fill="both", expand=True)
+    window = Tk()
 
-    # Create scrollable frame
-    scrollable_frame = tk.Frame(main_canvas, bg="#f9fff7")
-    main_canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    window.geometry("1122x630")
+    window.resizable(False, False)
+    window.configure(bg="#f5fef0")
+    
+    
+    canvas = Canvas(
+        window,
+        bg="#f5fef0",
+        height=630,
+        width=1122,
+        bd=0,
+        highlightthickness=0,
+        relief="ridge",
+    )
 
-    def on_frame_configure(event):
-        main_canvas.configure(scrollregion=main_canvas.bbox("all"))
-        main_canvas.itemconfig(1, width=event.width)
+    canvas.place(x=0, y=0)
+    canvas.create_rectangle(26.5, 220.5, 860.0, 221.0, fill="#f5fef0", outline="")
 
-    scrollable_frame.bind("<Configure>", on_frame_configure)
+    canvas.create_rectangle(26.5, 362.5, 868.0, 363.0, fill="#f5fef0", outline="")
 
-    # Create graph frames
-    time_graph_frame = tk.Frame(scrollable_frame, bg="#f9fff7", width=1100)
-    time_graph_frame.pack(pady=10, fill="x")
+    canvas.create_text(
+        435.0,
+        15.0,
+        anchor="nw",
+        text="Fill in your farm’s soil/weather data.",
+        fill="#000000",
+        font=("Inter", 14 * -1),
+    )
+    # --------------------------------------------------
+    canvas.create_text(
+        27.0,
+        29.0,
+        anchor="nw",
+        text="Soil Properties",
+        fill="#000000",
+        font=("Inter MediumItalic", 17 * -1),
+    )
+    # first line
+    entry_image_1 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_1 = canvas.create_image(118.5, 115, image=entry_image_1)
+    entry_1 = entry_1 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_1.place(x=40.0, y=108, width=160.0, height=15)
 
-    memory_graph_frame = tk.Frame(scrollable_frame, bg="#f9fff7", width=1100)
-    memory_graph_frame.pack(pady=10, fill="x")
+    canvas.create_text(
+        40.0, 70.0, anchor="nw", text="Nitrogen (pmm)", fill="#000000", font=("Inter", 12 * -1),
+    )
 
-    environmental_graph_frame = tk.Frame(scrollable_frame, bg="#f9fff7", width=1100)
-    environmental_graph_frame.pack(pady=10, fill="x")
+    entry_image_2 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_2 = canvas.create_image(387.5, 115, image=entry_image_2)
+    entry_2 = Entry(bd=0, bg="#ffffff", fg="#000716", highlightthickness=0)
+    entry_2.place(x=309, y=108, width=160.0, height=15)
 
-    comparator_graph_frame = tk.Frame(scrollable_frame, bg="#f9fff7", width=1100)
-    comparator_graph_frame.pack(pady=10, fill="x")
+    canvas.create_text( 
+        309, 70.0, anchor="nw", text="Phosphorus (pmm)", fill="#000000", font=("Inter", 12 * -1),
+    )
 
-    # Display graphs
-    if initial_state:
-        display_TimeComplexity_graph(initial_state, time_graph_frame)
-        display_SpaceComplexity_graph(initial_state, memory_graph_frame)
-        display_AlgorithmComparator_graph(initial_state, comparator_graph_frame)
-        display_EnvironmentalImpact_graph(initial_state, environmental_graph_frame)
-    else:
-        for frame in [time_graph_frame, memory_graph_frame, environmental_graph_frame, comparator_graph_frame]:
-            tk.Label(frame, text="No data available", bg="#f9fff7").pack()
+    entry_image_3 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_3 = canvas.create_image(656.5, 115, image=entry_image_3)
+    entry_3 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_3.place(x=578, y=108, width=160.0, height=15)
 
-    root.mainloop()
+    canvas.create_text(
+        578.0, 70.0, anchor="nw", text="Potassium (pmm) ", fill="#000000", font=("Inter", 12 * -1),
+    )
+
+    entry_image_4 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_4 = canvas.create_image(925.5, 115, image=entry_image_4)
+    entry_4 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_4.place(x=847, y=108, width=160.0, height=15)
+
+    canvas.create_text(
+        847, 70.0, anchor="nw", text="pH Level", fill="#000000", font=("Inter", 12 * -1),
+    )
+
+    # second line
+
+    entry_image_5 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_5 = canvas.create_image(118.5, 200, image=entry_image_5)
+    entry_5 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_5.place(x=40.0, y=193, width=157.0, height=15)
+
+    canvas.create_text(
+        41, 151.5, anchor="nw", text="organic matter(%)", fill="#000000", font=("Inter", 12 * -1)
+    )
+
+    entry_image_6 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_6 = canvas.create_image(387.5, 200, image=entry_image_6)
+    entry_6 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_6.place(x=309, y=193, width=157.0, height=15)
+
+    canvas.create_text(
+        309, 151.5, anchor="nw", text="Soil Moisture (%)", fill="#000000", font=("Inter", 12 * -1),
+    )
+
+    # ---------------------------------
+    line_top = canvas.create_rectangle(0, 0, 0, 0, fill="#4d4d4d", outline="")
+    canvas.coords(line_top,27,234,1070,234)
+    # ------------------------------------
+
+    canvas.create_text(
+        27.0,
+        247.0,
+        anchor="nw",
+        text="Climate Conditions",
+        fill="#000000",
+        font=("Inter MediumItalic", 17 * -1),
+    )
+
+    # third line
+    entry_image_7 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_7 = canvas.create_image(118.5, 336.5, image=entry_image_7)
+    entry_7 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_7.place(x=40.0, y=329.5, width=157.0, height=15)
+
+    canvas.create_text(
+        40, 288.0, anchor="nw", text="temperature (C)", fill="#000000", font=("Inter", 12 * -1),
+    )
+
+    entry_image_8 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_8 = canvas.create_image(387.5, 336.5, image=entry_image_8)
+    entry_8 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_8.place(x=309, y=329.5, width=157.0, height=15)
+
+    canvas.create_text(
+        309, 288.0, anchor="nw", text="humidity (%)", fill="#000000", font=("Inter", 12 * -1),
+    )
+
+    entry_image_9 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_9 = canvas.create_image(656.5, 336.5, image=entry_image_9)
+    entry_9 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_9.place(x=578, y=329.5, width=157.0, height=15)
+
+    canvas.create_text(
+        578, 288.0, anchor="nw", text="rainfall (mm/mo)", fill="#000000", font=("Inter", 12 * -1),
+    )
+
+    entry_image_10 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_10 = canvas.create_image(925.5, 336.5, image=entry_image_9)
+    entry_10 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_10.place(x=847, y=329.5, width=157.0, height=15)
+
+    canvas.create_text(
+        847, 288.0, anchor="nw", text="sunlight exposure(h/day)", fill="#000000", font=("Inter", 12 * -1),
+    )
+    # -------------------------------------
+    line_bottom = canvas.create_rectangle(0, 0, 0, 0, fill="#4d4d4d", outline="")
+    canvas.coords(line_bottom,27,373,1070,373)
+    # -------------------------------------
+
+    canvas.create_text(
+        27.0,
+        386.0,
+        anchor="nw",
+        text=" Environmental Factors",
+        fill="#000000",
+        font=("Inter MediumItalic", 17 * -1),
+    )
+
+    # fourth line
+    entry_image_11 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_11 = canvas.create_image(118.5, 475.5, image=entry_image_6)
+    entry_11 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_11.place(x=40.0, y=468.5, width=157.0, height=15)
+
+
+    canvas.create_text(
+        40,
+        427.0,
+        anchor="nw",
+        text="irrigation frequency(x/week)",
+        fill="#000000",
+        font=("Inter", 12 * -1),
+    )
+
+
+    entry_image_12 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_12 = canvas.create_image(387.5, 475.5, image=entry_image_11)
+    entry_12 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_12.place(x=309, y=468.5, width=157.0, height=15)
+
+    canvas.create_text(
+        309,
+        427.0,
+        anchor="nw",
+        text="water usage efficiency(1–5)",
+        fill="#000000",
+        font=("Inter", 12 * -1),
+    )
+
+    entry_image_13 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_13 = canvas.create_image(656.5, 475.5, image=entry_image_12)
+    entry_13 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_13.place(x=578, y=468.5, width=157.0, height=15)
+
+    canvas.create_text(
+        578,
+        427.0,
+        anchor="nw",
+        text="fertilizer usage",
+        fill="#000000",
+        font=("Inter", 12 * -1),
+    )
+
+    entry_image_14 = PhotoImage(file=relative_to_assets("entry.png"))
+    entry_bg_14 = canvas.create_image(925.5, 475.5, image=entry_image_13)
+    entry_14 = Entry(bd=0,bg="#ffffff", fg="#000716",highlightthickness=0)
+    entry_14.place(x=847, y=468.5, width=157.0, height=15)
+
+    canvas.create_text(
+        847,
+        427.0,
+        anchor="nw",
+        text="pest pressure(1–5)",
+        fill="#000000",
+        font=("Inter", 12 * -1),
+    )
+
+
+    # Load button images
+    button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
+    button_image_2 = PhotoImage(file=relative_to_assets("button_2.png"))
+
+    # Replace buttons with clickable images
+    button1_img = canvas.create_image(850.0, 555.0, anchor="nw", image=button_image_1)
+    button2_img = canvas.create_image(720.0, 555.0, anchor="nw", image=button_image_2)
+
+    def on_button1_click(event):
+        input_data = collect_inputs()
+        if input_data:  
+            window.destroy()
+            subprocess.Popen([sys.executable, "./src/app/frontend/output.py", json.dumps(input_data)])
+
+    def on_button2_click(event):
+        #Reset all input fields to empty
+        entries = [
+            entry_1, entry_2, entry_3, entry_4, entry_5,
+            entry_6, entry_7, entry_8, entry_9, entry_10,
+            entry_11, entry_12, entry_13, entry_14
+        ]
+        
+        for entry in entries:
+            entry.delete(0, 'end')  # Clear the entry field
+        
+        # Optional: Set focus to first field for better UX
+        entry_1.focus_set()
+
+    # Bind click events and cursor changes
+    canvas.tag_bind(button1_img, "<Button-1>", on_button1_click)
+    canvas.tag_bind(button2_img, "<Button-1>", on_button2_click)
+
+    def on_enter(event):
+        window.config(cursor="hand2")
+
+    def on_leave(event):
+        window.config(cursor="")
+
+    canvas.tag_bind(button1_img, "<Enter>", on_enter)
+    canvas.tag_bind(button1_img, "<Leave>", on_leave)
+    canvas.tag_bind(button2_img, "<Enter>", on_enter)
+    canvas.tag_bind(button2_img, "<Leave>", on_leave)
+
+
+
+
+    def collect_inputs():
+        #Collect all input values from the form with validation
+        entries = [
+            entry_1, entry_2, entry_3, entry_4, entry_5,
+            entry_6, entry_7, entry_8, entry_9, entry_10,
+            entry_11, entry_12, entry_13, entry_14
+        ]
+        
+        # Check if any field is empty
+        for entry in entries:
+            if not entry.get().strip():
+                messagebox.showerror(
+                    "Missing Data",
+                    "Please fill in all fields before getting recommendations!",
+                    parent=window
+                )
+                return None  # Return None if validation fails
+        
+        try:
+            return {
+                'soil': {
+                    'n': float(entry_1.get()),
+                    'p': float(entry_2.get()),
+                    'k': float(entry_3.get()),
+                    'ph': float(entry_4.get()),
+                    'organic_matter': float(entry_5.get()),
+                    'soil_moisture': float(entry_6.get())
+                },
+                'climate': {
+                    'temperature': float(entry_7.get()),
+                    'humidity': float(entry_8.get()),
+                    'rainfall': float(entry_9.get()),
+                    'sunlight_exposure': float(entry_10.get())
+                },
+                'environmental': {
+                    'irrigation_frequency': float(entry_11.get()),
+                    'water_usage_efficiency': float(entry_12.get()),
+                    'fertilizer_usage': float(entry_13.get()),
+                    'pest_pressure': float(entry_14.get())
+                }
+            }
+        except ValueError:
+            messagebox.showerror(
+                "Invalid Data",
+                "Please enter valid numbers in all fields!",
+                parent=window
+            )
+            return None
+
+
+    window.resizable(False, False)
+
+    window.mainloop()
+   """

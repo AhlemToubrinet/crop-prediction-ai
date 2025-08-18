@@ -83,7 +83,7 @@ if __name__ == "__main__":
             ("Irrigation Frequency (x/week)", 150,420),
             ("Water Usage Efficiency (1–5)", 370, 420),
             ("Fertilizer Usage", 580, 420),
-            ("Pest Pressure (1–5)", 800, 420),
+            ("Pest Pressure", 800, 420),
         ], 340),
     ]
 

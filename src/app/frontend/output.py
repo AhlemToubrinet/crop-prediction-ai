@@ -210,9 +210,10 @@ def initialize_ui():
     algo_var = tk.StringVar(value="A* Search")
     image_refs = []
     root.title("Crop Recommendation UI")
-    root.geometry("1122x880")
+    root.geometry("1122x650")
+    root.resizable(False, False)
     root.configure(bg="#f9fff7")
-    header_canvas = tk.Canvas(root, height=250, bg="#0c4e0b", highlightthickness=0)
+    header_canvas = tk.Canvas(root, height=200, bg="#0c4e0b", highlightthickness=0)
     header_canvas.pack(fill="x")
     header_frame = tk.Frame(header_canvas, bg="#0c4e0b")
     header_canvas.create_window((70, 20), window=header_frame, anchor="nw")
@@ -285,13 +286,14 @@ def initialize_ui():
     back_frame.bind("<Button-1>", lambda e: go_back_to_inputs())
     back_img_label.bind("<Button-1>", lambda e: go_back_to_inputs())
     back_text_label.bind("<Button-1>", lambda e: go_back_to_inputs())
+    
     body_frame = tk.Frame(root, bg="#f6fff5")
     body_frame.pack(fill="both", expand=True)
     bg_canvas = tk.Canvas(body_frame, bg="#f6fff5", highlightthickness=0)
     bg_canvas.pack(expand=True, fill="both", padx=30, pady=20)
-    create_rounded_rect(bg_canvas, 90, 20, 990, 570, radius=35, fill="white", outline="#b4dfc0", width=3)
+    create_rounded_rect(bg_canvas, 90, 0, 990, 570, radius=35, fill="white", outline="#b4dfc0", width=3)
     rounded_frame = tk.Frame(bg_canvas, bg="white", bd=0)
-    bg_canvas.create_window(90, 20, anchor="nw", window=rounded_frame, width=900, height=550)
+    bg_canvas.create_window(90, 1, anchor="nw", window=rounded_frame, width=900, height=550)
     header = tk.Frame(rounded_frame, bg="white")
     header.pack(fill="x", padx=30, pady=(20, 10))
     tk.Label(header, text="Recommended Crops", font=("Arial", 14, "bold"), fg="#14532d", bg="white").pack(side="left")
@@ -323,11 +325,11 @@ def BestRecUi(header_canvas, selected_method, image_refs, top_crops):
         reco_icon = Image.open(relative_to_assets("default.png")).resize((28, 28))
     reco_icon_tk = ImageTk.PhotoImage(reco_icon)
     image_refs.append(reco_icon_tk)
-    banner_top = 120
-    banner_bottom = 230
+    banner_top = 100
+    banner_bottom = 180
     create_rounded_rect(header_canvas, 70, banner_top, 1040, banner_bottom, radius=30, fill="#246025")
     reco_combo_frame = tk.Frame(header_canvas, bg="#246025")
-    header_canvas.create_window((150, banner_top + 15), window=reco_combo_frame, anchor="nw")
+    header_canvas.create_window((100, banner_top + 5), window=reco_combo_frame, anchor="nw") #this
     reco_icon_label = tk.Label(reco_combo_frame, image=reco_icon_tk, bg="#246025")
     reco_icon_label.image = reco_icon_tk
     reco_icon_label.pack(side="left", padx=(0, 16), pady=(0, 5))
@@ -344,7 +346,7 @@ def BestRecUi(header_canvas, selected_method, image_refs, top_crops):
 
 
 def go_to_dashboard():
-    #root.destroy()
+    root.destroy()
     initial_state = {
             'soil': input_data['soil'],
             'climate': input_data['climate'],
