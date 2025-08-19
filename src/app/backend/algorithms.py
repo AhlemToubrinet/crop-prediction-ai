@@ -1167,9 +1167,7 @@ class EnvironmentalImpactEvaluator:
         for j in range(i + 1, len(axes)):
             axes[j].axis('off')
         
-        plt.tight_layout()
-        plt.savefig('algorithm_minimal_environmental_recommendations.png')
-        plt.show()
+        
     
     def _print_results(self, df):
         """Print the comparison results in a table format"""

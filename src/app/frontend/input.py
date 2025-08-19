@@ -1,14 +1,13 @@
 from pathlib import Path
 import json
 from tkinter import messagebox
-from tkinter import Tk, Canvas, Entry, PhotoImage
+from tkinter import Tk, Canvas, Entry
 import subprocess
 import sys
 from PIL import Image, ImageTk
 
 # shared_data.py (or inside dashboard.py / main.py)
 shared_input = None
-
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path(r"./assets/input")
@@ -33,7 +32,7 @@ if __name__ == "__main__":
     )
     canvas.place(x=0, y=0)
     canvas.create_rectangle(0, 0, 1122, 80, fill="#0c4e0b", outline="")
-    
+
     try:
         pil_logo = Image.open(relative_to_assets("leaf.png")).resize((80, 80), Image.Resampling.LANCZOS)
         logo_img = ImageTk.PhotoImage(pil_logo)
@@ -44,6 +43,7 @@ if __name__ == "__main__":
     canvas.create_text(130, 26, anchor="w", text="Farm Data Input", fill="#ffffff", font=("Segoe UI", 18,"bold"))
     canvas.create_text(130, 50, anchor="w", text="Fill in your farm’s soil/weather data.", fill="#e7f3e6", font=("Segoe UI", 10))
 
+    
     def create_rounded_rect(canvas, x1, y1, x2, y2, radius=25, **kwargs):
         points = [
             x1 + radius, y1,
@@ -62,8 +62,8 @@ if __name__ == "__main__":
         return canvas.create_polygon(points, smooth=True, **kwargs)
 
     create_rounded_rect(canvas, 50, 80, 1065, 650, radius=30, fill="#ffffff", outline="")
+
     y_shift = 88
-    field_offset = 20  
     sections = [
         ("Soil Properties", [
             ("Nitrogen (ppm)", 150, 70),
@@ -88,36 +88,42 @@ if __name__ == "__main__":
     ]
 
     entries = []
-    entry_size = (190, 46)
-    entry_img_path = relative_to_assets("entry.png")
-
-    try:
-        pil_entry = Image.open(entry_img_path).resize(entry_size, Image.Resampling.LANCZOS)
-        entry_img = ImageTk.PhotoImage(pil_entry)
-    except Exception:
-        entry_img = None
-
     for section_title, fields, section_title_y in sections:
-        canvas.create_text(135, section_title_y + y_shift, anchor="nw", text=section_title, fill="#0c4e0b", font=("Segoe UI", 18, "bold"))
+        canvas.create_text(135, section_title_y + y_shift, anchor="nw",
+                           text=section_title, fill="#0c4e0b", font=("Segoe UI", 18, "bold"))
         for label, x, y in fields:
-            canvas.create_text(x-13, y - 33 + y_shift, anchor="nw", text=label, fill="#000000", font=("Segoe UI", 11))
-            if entry_img:
-                canvas.create_image(x + 78.5, y + 13 + y_shift, image=entry_img)
+            canvas.create_text(x-5, y - 33 + y_shift, anchor="nw",
+                               text=label, fill="#000000", font=("Segoe UI", 11))
+            
+            create_rounded_rect(canvas, x-5, y + y_shift-2, x+165, y + y_shift+28,
+                                radius=10, fill="#ffffff", outline="#cccccc")
             entry = Entry(bd=0, bg="#ffffff", fg="#000716", highlightthickness=0)
             entry.place(x=x, y=y + y_shift, width=157.0, height=24)
             entries.append(entry)
-    try:
-        button_image_1 = PhotoImage(file=relative_to_assets("button.png"))
-        button_image_2 = PhotoImage(file=relative_to_assets("reset.png"))
-        button1_img = canvas.create_image(735, 580, anchor="nw", image=button_image_1)
-        button2_img = canvas.create_image(595, 580, anchor="nw", image=button_image_2)
-    except Exception:
-        from tkinter import Button
-        button1 = Button(window, text="Get Recommendation", bg="#0c4e0b", fg="white", font=("Segoe UI", 12, "bold"))
-        button1.place(x=900, y=570, width=150, height=40)
-        button2 = Button(window, text="Reset", bg="#e0e0e0", fg="#0c4e0b", font=("Segoe UI", 12, "bold"))
-        button2.place(x=770, y=570, width=120, height=40)
-        button1_img = button2_img = None
+
+    
+    btn2_bg = create_rounded_rect(canvas, 595, 580, 715, 625,
+                                  radius=25, fill="white", outline="#A6AEA6", width=1)
+    btn2_text = canvas.create_text((595+715)//2 + 5, (580+625)//2,
+                                   text="Reset", fill="#2A362A",
+                                   font=("Segoe UI", 12, "bold"))
+
+    
+    btn2_icon = canvas.create_text((595+715)//2 - 35, (580+625)//2,
+                                   text="⟲", fill="#2A362A",
+                                   font=("Segoe UI", 14, "bold"))
+
+    
+    btn1_bg = create_rounded_rect(canvas, 735, 580, 1010, 625,
+                                  radius=25, fill="#127512", outline="")
+    btn1_text = canvas.create_text((735+1010)//2 - 10, (580+625)//2,
+                                   text="Get Recommendation", fill="white",
+                                   font=("Segoe UI", 12, "bold"))
+
+    
+    btn1_icon = canvas.create_text((735+1010)//2 + 100, (580+625)//2,
+                                   text="🡺", fill="white",
+                                   font=("Segoe UI", 14, "bold"))
 
     def collect_inputs():
         try:
@@ -144,7 +150,6 @@ if __name__ == "__main__":
             messagebox.showerror("Invalid Data", "Please enter valid numbers!", parent=window)
             return None
 
-    
     def on_button1_click(event=None):
         input_data = collect_inputs()
         if input_data:
@@ -156,15 +161,15 @@ if __name__ == "__main__":
             entry.delete(0, 'end')
         entries[0].focus_set()
 
-    if 'button1_img' in locals() and 'button2_img' in locals() and button1_img and button2_img:
-        canvas.tag_bind(button1_img, "<Button-1>", on_button1_click)
-        canvas.tag_bind(button2_img, "<Button-1>", on_button2_click)
-        for btn in [button1_img, button2_img]:
-            canvas.tag_bind(btn, "<Enter>", lambda e: window.config(cursor="hand2"))
-            canvas.tag_bind(btn, "<Leave>", lambda e: window.config(cursor=""))
-    else:
-        button1.config(command=on_button1_click)
-        button2.config(command=on_button2_click)
+    
+    for btn in [(btn1_bg, btn1_text, on_button1_click),
+                (btn2_bg, btn2_text, on_button2_click)]:
+        bg, text, func = btn
+        canvas.tag_bind(bg, "<Button-1>", func)
+        canvas.tag_bind(text, "<Button-1>", func)
+        canvas.tag_bind(bg, "<Enter>", lambda e: window.config(cursor="hand2"))
+        canvas.tag_bind(text, "<Enter>", lambda e: window.config(cursor="hand2"))
+        canvas.tag_bind(bg, "<Leave>", lambda e: window.config(cursor=""))
+        canvas.tag_bind(text, "<Leave>", lambda e: window.config(cursor=""))
 
     window.mainloop()
-
